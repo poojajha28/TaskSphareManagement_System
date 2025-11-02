@@ -34,6 +34,14 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Admin-only middleware
+const requireAdmin = (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+};
+
 // Auth Routes
 app.post('/api/auth/signup', async (req, res) => {
   try {
@@ -41,15 +49,16 @@ app.post('/api/auth/signup', async (req, res) => {
     
     const hashedPassword = await bcrypt.hash(password, 10);
     
+    // Default role is 'user'
     const [result] = await pool.execute(
-      'INSERT INTO users (name, email, password, reward_points, rating, tasks_completed, projects_completed) VALUES (?, ?, ?, 0, 0, 0, 0)',
-      [name, email, hashedPassword]
+      'INSERT INTO users (name, email, role, password, reward_points, rating, tasks_completed, projects_completed) VALUES (?, ?, ?, ?, 0, 0, 0, 0)',
+      [name, email, 'user', hashedPassword]
     );
     
     const userId = result.insertId;
-    const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '7d' });
+    const token = jwt.sign({ id: userId, email, role: 'user' }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '7d' });
     
-    res.json({ token, user: { id: userId, name, email, rewardPoints: 0, rating: 0, tasksCompleted: 0 } });
+    res.json({ token, user: { id: userId, name, email, role: 'user', rewardPoints: 0, rating: 0, tasksCompleted: 0 } });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -72,7 +81,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '7d' });
     
     res.json({
       token,
@@ -80,6 +89,7 @@ app.post('/api/auth/login', async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
         rewardPoints: user.reward_points,
         rating: user.rating,
         tasksCompleted: user.tasks_completed
@@ -103,6 +113,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role,
       rewardPoints: user.reward_points,
       rating: user.rating,
       tasksCompleted: user.tasks_completed,
@@ -232,7 +243,7 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
 // Users/Leaderboard Routes
 app.get('/api/users', authenticateToken, async (req, res) => {
   try {
-    const [users] = await pool.execute('SELECT id, name, email, reward_points, rating, tasks_completed, created_at FROM users');
+    const [users] = await pool.execute('SELECT id, name, email, role, reward_points, rating, tasks_completed, created_at FROM users ORDER BY name');
     res.json(users);
   } catch (error) {
     res.status(400).json({ error: error.message });
