@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Filter, Search, Users } from 'lucide-react';
-import { collection, query, orderBy, onSnapshot, addDoc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import ProjectCard from '../components/ProjectCard';
 import Modal from '../components/Modal';
 import Button from '../components/Button';
 import toast from 'react-hot-toast';
+import { api } from '../config/api';
 
 function Projects() {
   const { user } = useAuth();
@@ -17,36 +16,42 @@ function Projects() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const q = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const projectsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setProjects(projectsData);
-      setLoading(false);
-    });
-
-    return unsubscribe;
+    fetchProjects();
   }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const projectsData = await api.get('/projects');
+      // Convert MySQL dates to format expected by UI
+      const formattedProjects = projectsData.map(p => ({
+        ...p,
+        dueDate: p.due_date ? { toDate: () => new Date(p.due_date) } : null,
+        estimatedHours: p.estimated_hours,
+        totalTasks: p.total_tasks || 0,
+        completedTasks: p.completed_tasks || 0,
+        createdBy: p.created_by
+      }));
+      setProjects(formattedProjects);
+    } catch (error) {
+      toast.error('Failed to fetch projects');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCreateProject = async (projectData) => {
     try {
-      await addDoc(collection(db, 'projects'), {
-        ...projectData,
-        createdBy: user.uid,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-        status: 'planning',
-        totalTasks: 0,
-        completedTasks: 0,
-        teamMembers: [{ uid: user.uid, role: 'owner' }]
+      await api.post('/projects', {
+        name: projectData.name,
+        description: projectData.description,
+        priority: projectData.priority,
+        due_date: projectData.dueDate,
+        estimated_hours: projectData.estimatedHours
       });
       
-      // Close modal first, then show success message
       setShowCreateModal(false);
       toast.success('Project created successfully!');
+      fetchProjects(); // Refresh list
     } catch (error) {
       toast.error('Failed to create project');
     }
@@ -54,11 +59,11 @@ function Projects() {
 
   const filteredProjects = projects.filter(project => {
     const matchesFilter = filter === 'all' || 
-      (filter === 'my-projects' && project.teamMembers?.some(member => member.uid === user.uid)) ||
-      (filter === 'created-by-me' && project.createdBy === user.uid);
+      (filter === 'my-projects' && project.teamMembers?.some(member => member.uid === user?.id)) ||
+      (filter === 'created-by-me' && project.createdBy === user?.id);
     
-    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = project.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesFilter && matchesSearch;
   });
@@ -123,7 +128,6 @@ function Projects() {
             project={project}
             onClick={(project) => {
               // Handle project click - could navigate to project details
-              // Project details navigation would go here
             }}
           />
         ))}
@@ -178,13 +182,14 @@ function CreateProjectModal({ onClose, onSubmit }) {
     
     try {
       const projectData = {
-        ...formData,
+        name: formData.name,
+        description: formData.description,
+        priority: formData.priority,
         estimatedHours: formData.estimatedHours ? parseInt(formData.estimatedHours) : null,
-        dueDate: formData.dueDate ? Timestamp.fromDate(new Date(formData.dueDate)) : null
+        dueDate: formData.dueDate || null
       };
 
       await onSubmit(projectData);
-      // Modal will be closed by the parent component after successful submission
     } catch (error) {
       // Error handling is done by parent component
     } finally {

@@ -1,4 +1,3 @@
-// File: src/utils/reward.js
 
 export function calculateRewardPoints(task) {
   let basePoints = 10;

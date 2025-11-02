@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Star, Coins, Target } from 'lucide-react';
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../config/api';
 
 function Leaderboard() {
   const { userProfile } = useAuth();
@@ -16,20 +15,25 @@ function Leaderboard() {
 
   const fetchLeaderboard = async () => {
     try {
-      const orderField = activeTab === 'points' ? 'rewardPoints' : 
-                        activeTab === 'rating' ? 'rating' : 'tasksCompleted';
+      const orderField = activeTab === 'points' ? 'reward_points' : 
+                        activeTab === 'rating' ? 'rating' : 'tasks_completed';
       
-      const q = query(
-        collection(db, 'users'),
-        orderBy(orderField, 'desc'),
-        limit(10)
-      );
+      // API call with query parameter
+      const users = await api.get(`/leaderboard?orderBy=${orderField}`);
       
-      const snapshot = await getDocs(q);
-      const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setTopUsers(users);
+      // Convert MySQL field names to match UI
+      const formattedUsers = users.map(u => ({
+        ...u,
+        uid: u.id,
+        displayName: u.name,
+        rewardPoints: u.reward_points,
+        tasksCompleted: u.tasks_completed,
+        createdAt: { toDate: () => new Date(u.created_at) }
+      }));
+      
+      setTopUsers(formattedUsers);
     } catch (error) {
-      // Leaderboard will remain empty
+      console.error('Failed to fetch leaderboard');
     } finally {
       setLoading(false);
     }
