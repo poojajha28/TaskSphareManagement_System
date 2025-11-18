@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Users, CheckCircle, Clock } from 'lucide-react';
+import Projects from '../pages/Projects';
 
 const statusColors = {
   'planning': 'bg-gray-100 text-gray-800',
@@ -9,9 +10,7 @@ const statusColors = {
 };
 
 function ProjectCard({ project, onClick }) {
-  const completionPercentage = project.totalTasks > 0 
-    ? Math.round((project.completedTasks / project.totalTasks) * 100) 
-    : 0;
+  const completionPercentage = project.totalTasks
 
   return (
     <div 
@@ -45,12 +44,7 @@ function ProjectCard({ project, onClick }) {
         <div className="space-y-2">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <CheckCircle className="w-4 h-4" />
-            <span>{project.completedTasks || 0} / {project.totalTasks || 0} tasks completed</span>
-          </div>
-
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Users className="w-4 h-4" />
-            <span>{project.teamMembers?.length || 0} team members</span>
+            <span>{project.totalTasks} tasks</span>
           </div>
 
           {project.dueDate && (

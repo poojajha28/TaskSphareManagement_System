@@ -3,23 +3,37 @@ const pool = require('../config/database');
 class TaskService {
   async getAllTasks() {
     const [tasks] = await pool.execute(
-      `SELECT t.*, u.name as assigned_to_name 
-       FROM tasks t 
-       LEFT JOIN users u ON t.assigned_to = u.id 
+      `SELECT t.*, u.name as assigned_to_name, p.id as project_id, p.name as project_name
+       FROM tasks t
+       LEFT JOIN users u ON t.assigned_to = u.id
+       LEFT JOIN projects p ON t.project_id = p.id
        ORDER BY t.created_at DESC`
     );
     return tasks;
   }
 
   async createTask(taskData, createdBy) {
-    const { title, description, priority, estimated_hours, due_date, assigned_to } = taskData;
-    
+    const { title, description, priority, estimated_hours, due_date, assigned_to, project_id } = taskData;
+
     const [result] = await pool.execute(
-      `INSERT INTO tasks (title, description, priority, status, estimated_hours, due_date, assigned_to, created_by) 
-       VALUES (?, ?, ?, 'todo', ?, ?, ?, ?)`,
-      [title, description, priority, estimated_hours, due_date, assigned_to, createdBy]
+      `INSERT INTO tasks (title, description, priority, status, estimated_hours, due_date, assigned_to, project_id, created_by) 
+       VALUES (?, ?, ?, 'todo', ?, ?, ?, ?, ?)`,
+      [title, description, priority, estimated_hours, due_date, assigned_to, project_id || null, createdBy]
     );
-    
+
+    // If task is linked to a project, increment that project's total_tasks counter
+    if (project_id) {
+      try {
+        await pool.execute(
+          'UPDATE projects SET total_tasks = COALESCE(total_tasks,0) + 1, updated_at = NOW() WHERE id = ?',
+          [project_id]
+        );
+      } catch (err) {
+        // don't fail task creation if project update fails; log in server logs
+        console.error('Failed to update project total_tasks:', err.message || err);
+      }
+    }
+
     return { id: result.insertId };
   }
 
@@ -49,6 +63,17 @@ class TaskService {
         'UPDATE tasks SET status = ?, completed_at = NOW(), updated_at = NOW() WHERE id = ?',
         [status, taskId]
       );
+      // If task belongs to a project, increment that project's completed_tasks counter
+      if (task.project_id) {
+        try {
+          await pool.execute(
+            'UPDATE projects SET completed_tasks = COALESCE(completed_tasks,0) + 1, updated_at = NOW() WHERE id = ?',
+            [task.project_id]
+          );
+        } catch (err) {
+          console.error('Failed to update project completed_tasks:', err.message || err);
+        }
+      }
     } else {
       await pool.execute(
         'UPDATE tasks SET status = ?, updated_at = NOW() WHERE id = ?',

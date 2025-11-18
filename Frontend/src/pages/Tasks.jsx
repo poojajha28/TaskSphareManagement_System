@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import TaskCard from '../components/TaskCard';
 import Modal from '../components/Modal';
 import Button from '../components/Button';
-import toast from 'react-hot-toast';
 import { api } from '../config/api';
+import toast from 'react-hot-toast';
 
 const statusColumns = [
   { id: 'todo', title: 'To Do', color: 'bg-gray-100' },
@@ -17,6 +17,7 @@ const statusColumns = [
 function Tasks() {
   const { user, userProfile } = useAuth();
   const [tasks, setTasks] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filter, setFilter] = useState('all');
@@ -24,6 +25,7 @@ function Tasks() {
 
   useEffect(() => {
     fetchTasks();
+    fetchProjects();
   }, []);
 
   const fetchTasks = async () => {
@@ -45,7 +47,8 @@ function Tasks() {
         priority: taskData.priority,
         estimated_hours: taskData.estimatedHours,
         due_date: taskData.dueDate,
-        assigned_to: taskData.assignedTo
+        assigned_to: taskData.assignedTo,
+        project_id: taskData.projectId || null
       });
       
       setShowCreateModal(false);
@@ -53,6 +56,15 @@ function Tasks() {
       fetchTasks();
     } catch (error) {
       toast.error('Failed to create task');
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const projectsData = await api.get('/projects');
+      setProjects(projectsData);
+    } catch (error) {
+     toast.error("Failed to load projects")
     }
   };
 
@@ -95,7 +107,13 @@ function Tasks() {
           </p>
         </div>
         <Button
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => {
+            if (!projects || projects.length === 0) {
+              message.error('Please create a project first');
+              return;
+            }
+            setShowCreateModal(true);
+          }}
           className="flex items-center space-x-2"
         >
           <Plus className="w-5 h-5" />
@@ -167,13 +185,15 @@ function Tasks() {
         <CreateTaskModal
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateTask}
+          projects={projects}
+          tasks={tasks}
         />
       )}
     </div>
   );
 }
 
-function CreateTaskModal({ onClose, onSubmit }) {
+function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = [] }) {
   const { user, userProfile } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
@@ -185,12 +205,27 @@ function CreateTaskModal({ onClose, onSubmit }) {
     assignedToName: userProfile?.displayName || ''
   });
   const [users, setUsers] = useState([]);
+  const [localProjects, setLocalProjects] = useState(projects || []);
   const [showUserSelector, setShowUserSelector] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   useEffect(() => {
     fetchUsers();
+    // do not auto-select a project; require explicit user selection
+    setLocalProjects(projects || []);
   }, []);
+
+  const fetchLocalProjects = async () => {
+    try {
+      const projectsData = await api.get('/projects');
+      setLocalProjects(projectsData || []);
+      if (projectsData && projectsData.length > 0 && !formData.projectId) {
+        setFormData(prev => ({ ...prev, projectId: projectsData[0].id, projectName: projectsData[0].name }));
+      }
+    } catch (err) {
+      toast.error('Failed to refresh projects');
+    }
+  };
 
   const fetchUsers = async () => {
     setLoadingUsers(true);
@@ -214,6 +249,7 @@ function CreateTaskModal({ onClose, onSubmit }) {
     }
   };
 
+
   const handleUserSelect = (selectedUser) => {
     setFormData({
       ...formData,
@@ -235,13 +271,19 @@ function CreateTaskModal({ onClose, onSubmit }) {
       return;
     }
 
+    if (!formData.projectId) {
+      toast.error('Please select a project');
+      return;
+    }
+
     const taskData = {
       title: formData.title,
       description: formData.description,
       priority: formData.priority,
       estimatedHours: formData.estimatedHours ? parseInt(formData.estimatedHours) : null,
       dueDate: formData.dueDate || null,
-      assignedTo: formData.assignedTo
+      assignedTo: formData.assignedTo,
+      projectId: formData.projectId || null
     };
 
     onSubmit(taskData);
@@ -345,7 +387,49 @@ function CreateTaskModal({ onClose, onSubmit }) {
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4">
+        {/* Project Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Project *
+          </label>
+          <div className="flex items-center space-x-2">
+            <select
+              value={formData.projectId || ''}
+              onChange={(e) => {
+                const selected = (localProjects || []).find(p => String(p.id) === e.target.value);
+                setFormData({ 
+                  ...formData, 
+                  projectId: e.target.value || null,
+                  projectName: selected ? selected.name : ''
+                });
+              }}
+              className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="">-- Select Project --</option>
+              {(localProjects || []).map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            <Button type="button" onClick={() => fetchLocalProjects()} variant="outline" size="sm">
+              Refresh
+            </Button>
+          </div>
+          {/* Show project task counts when a project is selected */}
+          {formData.projectId && (
+            (() => {
+              const projId = String(formData.projectId);
+              const total = (pageTasks || []).filter(t => String(t.project_id) === projId).length;
+              const completed = (pageTasks || []).filter(t => String(t.project_id) === projId && t.status === 'done').length;
+              return (
+                <div className="text-sm text-gray-600 mt-2">
+                  This project has <strong className="text-gray-800">{total}</strong> task{total !== 1 ? 's' : ''} — <span className="text-green-600">{completed}</span> completed
+                </div>
+              );
+            })()
+          )}
+        </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
           <Button
             type="button"
             onClick={onClose}
