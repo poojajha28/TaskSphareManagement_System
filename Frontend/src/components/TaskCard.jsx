@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, User, Star, Calendar, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { calculateRewardPoints } from '../utils/reward';
@@ -21,6 +21,35 @@ const statusColors = {
 function TaskCard({ task, onTaskUpdate }) {
   const { user, updateUserRewards } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [overdueInfo, setOverdueInfo] = useState({ isOverdueApi: false, daysOverdue: 0 });
+  const [loadingOverdue, setLoadingOverdue] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchOverdue() {
+      if (!task?.id) return;
+      setLoadingOverdue(true);
+      try {
+        const res = await api.getOverdueTasks();
+        const tasks = Array.isArray(res) ? res : (res && res.data) || [];
+        const found = (tasks || []).find((t) => String(t.id) === String(task.id));
+        if (!mounted) return;
+        if (found) {
+          const days = Math.max(1, Math.floor((Date.now() - Date.parse(found.due_date)) / (1000 * 60 * 60 * 24)));
+          setOverdueInfo({ isOverdueApi: true, daysOverdue: days });
+        } else {
+          setOverdueInfo({ isOverdueApi: false, daysOverdue: 0 });
+        }
+      } catch (err) {
+        if (mounted) setOverdueInfo({ isOverdueApi: false, daysOverdue: 0 });
+      } finally {
+        if (mounted) setLoadingOverdue(false);
+      }
+    }
+
+    fetchOverdue();
+    return () => { mounted = false; };
+  }, [task.id, task.due_date, task.status]);
 
   const handleStatusChange = async (newStatus) => {
     if (loading) return;
@@ -49,8 +78,9 @@ function TaskCard({ task, onTaskUpdate }) {
     }
   };
 
-  // Convert MySQL date field for checking
-  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
+  // Convert MySQL date field for checking and prefer API result when available
+  const localIsOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
+  const isOverdue = overdueInfo.isOverdueApi || localIsOverdue;
   const canComplete = task.assigned_to === user?.id && task.status !== 'done';
 
   return (
@@ -83,7 +113,11 @@ function TaskCard({ task, onTaskUpdate }) {
           <div className={`flex items-center space-x-2 text-sm ${isOverdue ? 'text-red-600' : 'text-gray-600'}`}>
             <Calendar className="w-4 h-4" />
             <span>{new Date(task.due_date).toLocaleDateString()}</span>
-            {isOverdue && <span className="text-red-500 font-medium">(Overdue)</span>}
+            {isOverdue && (
+              <span className="text-red-500 font-medium">
+                {`(Overdue${overdueInfo.daysOverdue ? ` · ${overdueInfo.daysOverdue}d` : ''})`}
+              </span>
+            )}
           </div>
         )}
 

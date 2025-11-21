@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogOut, Star, Coins, User, Shield, Menu, X, Bell } from 'lucide-react';
 import { api } from '../config/api';
@@ -8,7 +8,6 @@ function Navbar() {
   const { logout, userProfile } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
   const [showNotif, setShowNotif] = useState(false);
   const [overdueTasks, setOverdueTasks] = useState([]);
   const [loadingNotif, setLoadingNotif] = useState(false);
@@ -185,11 +184,7 @@ function Navbar() {
                       {overdueTasks.map((t) => (
                         <div
                           key={t.id}
-                          onClick={() => {
-                            setShowNotif(false);
-                            navigate(`/tasks/${t.id}`);
-                          }}
-                          className="cursor-pointer p-2 rounded hover:bg-gray-50 border border-transparent hover:border-gray-100"
+                          className="p-2 rounded border border-transparent bg-white"
                         >
                           <div className="flex items-start justify-between">
                             <div className="min-w-0">
