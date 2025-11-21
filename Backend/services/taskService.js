@@ -12,6 +12,20 @@ class TaskService {
     return tasks;
   }
 
+  async getOverdueTasksForUser(userId) {
+    // Return tasks assigned to userId where due_date is before now and status is not 'done'
+    const [tasks] = await pool.execute(
+      `SELECT t.*, u.name as assigned_to_name, p.id as project_id, p.name as project_name
+       FROM tasks t
+       LEFT JOIN users u ON t.assigned_to = u.id
+       LEFT JOIN projects p ON t.project_id = p.id
+       WHERE t.assigned_to = ? AND t.status <> 'done' AND t.due_date IS NOT NULL AND t.due_date < NOW()
+       ORDER BY t.due_date ASC`,
+      [userId]
+    );
+    return tasks;
+  }
+
   async createTask(taskData, createdBy) {
     const { title, description, priority, estimated_hours, due_date, assigned_to, project_id } = taskData;
 

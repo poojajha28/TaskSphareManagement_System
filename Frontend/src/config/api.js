@@ -26,6 +26,11 @@ export const api = {
   get(endpoint) {
     return this.request(endpoint);
   },
+
+  // Convenience: fetch overdue tasks for the authenticated user
+  getOverdueTasks() {
+    return this.get('/tasks/overdue');
+  },
   
   post(endpoint, body) {
     return this.request(endpoint, {
