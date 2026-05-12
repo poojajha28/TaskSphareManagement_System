@@ -1,4 +1,4 @@
-// Last Updated: May 13, 2026
+
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 

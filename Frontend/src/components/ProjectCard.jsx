@@ -1,4 +1,4 @@
-// Last Updated: May 13, 2026
+
 import React from 'react';
 import { Calendar, Users, CheckCircle, Clock } from 'lucide-react';
 import Projects from '../pages/Projects';

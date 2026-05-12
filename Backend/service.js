@@ -1,4 +1,4 @@
-// Last Updated: May 13, 2026
+
 const authService = require('./services/authService');
 const taskService = require('./services/taskService');
 const projectService = require('./services/projectService');

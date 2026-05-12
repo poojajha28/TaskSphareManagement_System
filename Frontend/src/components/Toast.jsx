@@ -1,4 +1,4 @@
-// Last Updated: May 13, 2026
+
 import React from 'react';
 import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
 

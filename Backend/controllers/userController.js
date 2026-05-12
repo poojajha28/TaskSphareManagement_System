@@ -1,4 +1,4 @@
-// Last Updated: May 13, 2026
+
 const userService = require('../services/userService');
 
 class UserController {

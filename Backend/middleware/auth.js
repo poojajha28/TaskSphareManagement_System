@@ -1,4 +1,4 @@
-// Last Updated: May 13, 2026
+
 const jwt = require('jsonwebtoken');
 
 const authenticateToken = (req, res, next) => {

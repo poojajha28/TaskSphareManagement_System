@@ -1,4 +1,4 @@
-// Last Updated: May 13, 2026
+
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();

@@ -1,4 +1,4 @@
-// Last Updated: May 13, 2026
+
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const projectRoutes = require('./routes/projectRoutes');

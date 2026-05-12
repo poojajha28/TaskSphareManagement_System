@@ -1,4 +1,4 @@
-// Last Updated: May 13, 2026
+
 import React, { useState, useEffect } from 'react';
 import { Trophy, Star, Coins, Target } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';

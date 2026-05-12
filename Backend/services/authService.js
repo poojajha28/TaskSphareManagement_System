@@ -1,4 +1,4 @@
-// Last Updated: May 13, 2026
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/database');

@@ -1,4 +1,4 @@
-// Last Updated: May 13, 2026
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
