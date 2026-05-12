@@ -1,3 +1,4 @@
+// Last Updated: May 13, 2026
 const authController = require('./controllers/authController');
 const taskController = require('./controllers/taskController');
 const projectController = require('./controllers/projectController');

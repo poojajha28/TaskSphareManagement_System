@@ -1,3 +1,4 @@
+// Last Updated: May 13, 2026
 import React from 'react';
 import { Star, Coins, Target, Mail, User } from 'lucide-react';
 

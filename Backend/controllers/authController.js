@@ -1,3 +1,4 @@
+// Last Updated: May 13, 2026
 const authService = require('../services/authService');
 
 class AuthController {

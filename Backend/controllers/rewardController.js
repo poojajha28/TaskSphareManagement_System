@@ -1,3 +1,4 @@
+// Last Updated: May 13, 2026
 const rewardService = require('../services/rewardService');
 
 class RewardController {

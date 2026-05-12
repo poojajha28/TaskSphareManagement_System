@@ -1,3 +1,4 @@
+// Last Updated: May 13, 2026
 const projectService = require('../services/projectService');
 
 class ProjectController {

@@ -1,3 +1,4 @@
+// Last Updated: May 13, 2026
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';

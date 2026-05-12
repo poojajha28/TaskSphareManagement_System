@@ -1,3 +1,4 @@
+// Last Updated: May 13, 2026
 import React, { useState, useEffect } from 'react';
 import { Gift, Coins, Star, ShoppingCart, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
