@@ -36,7 +36,7 @@ const Button = React.forwardRef(({
       {...props}
     >
       {children}
-    </button>
+    </button>  
   );
 });
 

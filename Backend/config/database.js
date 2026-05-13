@@ -10,9 +10,9 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
-});
+});  
 
-// Test database connection
+// Test database connection++
 pool.getConnection()
   .then(connection => {
     console.log('Database connected successfully');
