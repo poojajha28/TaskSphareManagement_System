@@ -1,18 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db } from '../firebase';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged 
-} from 'firebase/auth';
-import { 
-  doc, 
-  setDoc, 
-  getDoc, 
-  updateDoc, 
-  increment 
-} from 'firebase/firestore';
+import React, { createContext, useContext, useState } from 'react';
+import { authService } from '../services/authService';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -22,146 +9,69 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState(null);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [loading, setLoading] = useState(false);
 
-  async function signup(email, password, displayName) {
+  async function signup(email, password, name) {
     try {
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      setLoading(true);
+      const response = await authService.signup({ email, password, name });
       
-      // Create user profile in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: displayName,
-        rewardPoints: 0,
-        rating: 0,
-        tasksCompleted: 0,
-        projectsCompleted: 0,
-        createdAt: new Date(),
-        avatar: null
-      });
+      const { user: userData, token } = response;
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', token);
       
       toast.success('Account created successfully!');
-      return user;
+      return userData;
     } catch (error) {
       toast.error(error.message);
       throw error;
+    } finally {
+      setLoading(false);
     }
   }
 
   async function login(email, password) {
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      setLoading(true);
+      const response = await authService.login({ email, password });
+      
+      const { user: userData, token } = response;
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', token);
+      
       toast.success('Logged in successfully!');
-      return result;
+      return userData;
     } catch (error) {
       toast.error(error.message);
       throw error;
+    } finally {
+      setLoading(false);
     }
   }
 
   async function logout() {
     try {
-      await signOut(auth);
-      setUserProfile(null);
+      setUser(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
       toast.success('Logged out successfully!');
     } catch (error) {
       toast.error(error.message);
     }
   }
 
-  async function updateUserRewards(points, taskCompleted = false) {
-    if (!user) return;
-    
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      const updates = {
-        rewardPoints: increment(points)
-      };
-      
-      if (taskCompleted) {
-        updates.tasksCompleted = increment(1);
-        // Calculate new rating based on tasks completed
-        const newTasksCompleted = (userProfile?.tasksCompleted || 0) + 1;
-        const newRating = Math.min(5, Math.floor(newTasksCompleted / 10) + 1);
-        updates.rating = newRating;
-      }
-      
-      await updateDoc(userRef, updates);
-      
-      // Update local state immediately
-      setUserProfile(prev => ({
-        ...prev,
-        rewardPoints: (prev?.rewardPoints || 0) + points,
-        tasksCompleted: taskCompleted ? (prev?.tasksCompleted || 0) + 1 : prev?.tasksCompleted,
-        rating: taskCompleted ? Math.min(5, Math.floor(((prev?.tasksCompleted || 0) + 1) / 10) + 1) : prev?.rating
-      }));
-      
-      // Also refresh from database to ensure sync
-      setTimeout(async () => {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            setUserProfile(userDoc.data());
-          }
-        } catch (error) {
-          // Silent fail for profile refresh
-        }
-      }, 1000);
-      
-      toast.success(`+${points} reward points earned! 🎉`);
-    } catch (error) {
-      toast.error('Failed to update rewards');
-    }
-  }
-
-  async function refreshUserProfile() {
-    if (!user) return;
-    
-    try {
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (userDoc.exists()) {
-        setUserProfile(userDoc.data());
-      }
-    } catch (error) {
-      // Silent fail for profile refresh
-    }
-  }
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      
-      if (user) {
-        // Fetch user profile
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            setUserProfile(userDoc.data());
-          }
-        } catch (error) {
-          // Silent fail for profile fetch
-        }
-      } else {
-        setUserProfile(null);
-      }
-      
-      setLoading(false);
-    });
-
-    return unsubscribe;
-  }, []);
-
   const value = {
     user,
-    userProfile,
+    loading,
     signup,
     login,
-    logout,
-    updateUserRewards,
-    refreshUserProfile
+    logout
   };
 
   return (
