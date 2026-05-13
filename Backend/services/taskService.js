@@ -1,0 +1,99 @@
+const pool = require('../config/database');
+
+class TaskService {
+  async getAllTasks() {
+    const [tasks] = await pool.execute(
+      `SELECT t.*, u.name as assigned_to_name 
+       FROM tasks t 
+       LEFT JOIN users u ON t.assigned_to = u.id 
+       ORDER BY t.created_at DESC`
+    );
+    return tasks;
+  }
+
+  async createTask(taskData, createdBy) {
+    const { title, description, priority, estimated_hours, due_date, assigned_to } = taskData;
+    
+    const [result] = await pool.execute(
+      `INSERT INTO tasks (title, description, priority, status, estimated_hours, due_date, assigned_to, created_by) 
+       VALUES (?, ?, ?, 'todo', ?, ?, ?, ?)`,
+      [title, description, priority, estimated_hours, due_date, assigned_to, createdBy]
+    );
+    
+    return { id: result.insertId };
+  }
+
+  async updateTaskStatus(taskId, status) {
+    const [tasks] = await pool.execute(
+      'SELECT * FROM tasks WHERE id = ?',
+      [taskId]
+    );
+    
+    if (tasks.length === 0) {
+      throw new Error('Task not found');
+    }
+    
+    const task = tasks[0];
+    let points = 0;
+    
+    // Calculate points if task is being marked as done
+    if (status === 'done' && task.status !== 'done') {
+      points = await this.calculateTaskPoints(task);
+      
+      // Update user stats
+      if (task.assigned_to) {
+        await this.updateUserStats(task.assigned_to, points);
+      }
+      
+      await pool.execute(
+        'UPDATE tasks SET status = ?, completed_at = NOW(), updated_at = NOW() WHERE id = ?',
+        [status, taskId]
+      );
+    } else {
+      await pool.execute(
+        'UPDATE tasks SET status = ?, updated_at = NOW() WHERE id = ?',
+        [status, taskId]
+      );
+    }
+    
+    return { points };
+  }
+
+  async calculateTaskPoints(task) {
+    let basePoints = 10;
+    const priorityMultiplier = { low: 1, medium: 1.5, high: 2 };
+    const hoursBonus = task.estimated_hours ? Math.floor(task.estimated_hours / 2) * 5 : 0;
+    
+    let timeBonus = 0;
+    if (task.due_date) {
+      const dueDate = new Date(task.due_date);
+      const now = new Date();
+      if (now <= dueDate) {
+        timeBonus = 15;
+      }
+    }
+    
+    const points = Math.floor((basePoints + hoursBonus) * priorityMultiplier[task.priority] + timeBonus);
+    return Math.max(points, 5);
+  }
+
+  async updateUserStats(userId, points) {
+    const [users] = await pool.execute(
+      'SELECT * FROM users WHERE id = ?',
+      [userId]
+    );
+    
+    if (users.length > 0) {
+      const newTasksCompleted = users[0].tasks_completed + 1;
+      const newRating = Math.min(5, Math.floor(newTasksCompleted / 10) + 1);
+      
+      await pool.execute(
+        'UPDATE users SET reward_points = reward_points + ?, tasks_completed = tasks_completed + 1, rating = ? WHERE id = ?',
+        [points, newRating, userId]
+      );
+    }
+  }
+}
+
+module.exports = new TaskService();
+
