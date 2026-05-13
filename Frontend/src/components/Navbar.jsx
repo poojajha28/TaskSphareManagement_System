@@ -122,7 +122,7 @@ function Navbar() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors "
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? (
@@ -158,7 +158,7 @@ function Navbar() {
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
                 title="Notifications"
               >
-                <Bell className="w-5 h-5 text-gray-700" />
+                <Bell className="w-5 h-5 text-gray-700 cursor-pointer" />
                 {overdueTasks.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{overdueTasks.length}</span>
                 )}
