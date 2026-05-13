@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "init-firebase": "node src/initFirebaseData.js",
+    "deploy": "npm run build && firebase deploy",
+    "deploy:hosting": "npm run build && firebase deploy --only hosting",
+    "deploy:firestore": "firebase deploy --only firestore",
+    "firebase:emulators": "firebase emulators:start"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
