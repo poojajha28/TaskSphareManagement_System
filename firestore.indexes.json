@@ -43,36 +43,6 @@
       ]
     },
     {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "rewardPoints",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "rating",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "tasksCompleted",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "claimedRewards",
       "queryScope": "COLLECTION",
       "fields": [

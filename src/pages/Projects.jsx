@@ -44,6 +44,7 @@ function Projects() {
         teamMembers: [{ uid: user.uid, role: 'owner' }]
       });
       
+      // Close modal first, then show success message
       setShowCreateModal(false);
       toast.success('Project created successfully!');
     } catch (error) {
@@ -165,21 +166,31 @@ function CreateProjectModal({ onClose, onSubmit }) {
     estimatedHours: '',
     priority: 'medium'
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       toast.error('Please enter a project name');
       return;
     }
 
-    const projectData = {
-      ...formData,
-      estimatedHours: formData.estimatedHours ? parseInt(formData.estimatedHours) : null,
-      dueDate: formData.dueDate ? Timestamp.fromDate(new Date(formData.dueDate)) : null
-    };
+    setIsSubmitting(true);
+    
+    try {
+      const projectData = {
+        ...formData,
+        estimatedHours: formData.estimatedHours ? parseInt(formData.estimatedHours) : null,
+        dueDate: formData.dueDate ? Timestamp.fromDate(new Date(formData.dueDate)) : null
+      };
 
-    onSubmit(projectData);
+      await onSubmit(projectData);
+      // Modal will be closed by the parent component after successful submission
+    } catch (error) {
+      console.error('Error in form submission:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -260,11 +271,22 @@ function CreateProjectModal({ onClose, onSubmit }) {
             type="button"
             onClick={onClose}
             variant="outline"
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button type="submit">
-            Create Project
+          <Button 
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Creating...
+              </>
+            ) : (
+              'Create Project'
+            )}
           </Button>
         </div>
       </form>
