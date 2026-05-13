@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Filter, Search } from 'lucide-react';
-import { collection, query, orderBy, onSnapshot, addDoc, Timestamp } from 'firebase/firestore';
+import { Plus, Filter, Search, Users } from 'lucide-react';
+import { collection, query, orderBy, onSnapshot, addDoc, Timestamp, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import TaskCard from '../components/TaskCard';
 import Modal from '../components/Modal';
 import Button from '../components/Button';
+import UserCard from '../components/UserCard';
 import toast from 'react-hot-toast';
 
 const statusColumns = [
@@ -167,20 +168,60 @@ function Tasks() {
 }
 
 function CreateTaskModal({ onClose, onSubmit }) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     priority: 'medium',
     estimatedHours: '',
     dueDate: '',
-    assignedTo: '',
-    assignedToName: ''
+    assignedTo: user?.uid || '', // Default assign to self
+    assignedToName: user?.displayName || ''
   });
+  const [users, setUsers] = useState([]);
+  const [showUserSelector, setShowUserSelector] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  // Fetch all users for assignment
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const usersSnapshot = await getDocs(collection(db, 'users'));
+      const usersData = usersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setUsers(usersData);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('Failed to load users');
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const handleUserSelect = (selectedUser) => {
+    setFormData({
+      ...formData,
+      assignedTo: selectedUser.uid,
+      assignedToName: selectedUser.displayName || selectedUser.email
+    });
+    setShowUserSelector(false);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title.trim()) {
       toast.error('Please enter a task title');
+      return;
+    }
+
+    if (!formData.assignedTo) {
+      toast.error('Please assign the task to a user');
       return;
     }
 
@@ -266,6 +307,31 @@ function CreateTaskModal({ onClose, onSubmit }) {
           />
         </div>
 
+        {/* Assign To Section */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Assign To *
+          </label>
+          <div className="flex items-center space-x-2">
+            <div className="flex-1 border border-gray-300 rounded-md px-3 py-2 bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <Users className="w-4 h-4 text-gray-500" />
+                <span className="text-sm">
+                  {formData.assignedToName || 'Select a user'}
+                </span>
+              </div>
+            </div>
+            <Button
+              type="button"
+              onClick={() => setShowUserSelector(true)}
+              variant="outline"
+              size="sm"
+            >
+              Choose
+            </Button>
+          </div>
+        </div>
+
         <div className="flex justify-end space-x-3 pt-4">
           <Button
             type="button"
@@ -279,6 +345,67 @@ function CreateTaskModal({ onClose, onSubmit }) {
           </Button>
         </div>
       </form>
+
+      {/* User Selection Modal */}
+      {showUserSelector && (
+        <Modal 
+          onClose={() => setShowUserSelector(false)} 
+          title="Select User to Assign"
+        >
+          <div className="space-y-4">
+            {loadingUsers ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="text-gray-600 mt-2">Loading users...</p>
+              </div>
+            ) : (
+              <>
+                <div className="max-h-96 overflow-y-auto space-y-3">
+                  {users.map(userData => (
+                    <div
+                      key={userData.id}
+                      onClick={() => handleUserSelect(userData)}
+                      className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-sm">
+                            {userData.displayName?.charAt(0)?.toUpperCase() || 'U'}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">
+                            {userData.displayName || 'Unknown User'}
+                          </h4>
+                          <p className="text-sm text-gray-600">{userData.email}</p>
+                          <div className="flex items-center space-x-4 mt-1">
+                            <span className="text-xs text-gray-500">
+                              {userData.rewardPoints || 0} points
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {userData.tasksCompleted || 0} tasks completed
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              ⭐ {userData.rating || 0}/5
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {users.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p>No users found</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </Modal>
+      )}
     </Modal>
   );
 }

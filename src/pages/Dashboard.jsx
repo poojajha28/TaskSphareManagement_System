@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { collection, query, where, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { BarChart3, TrendingUp, Users, CheckCircle, Star, Coins, Calendar, Plus } from 'lucide-react';
@@ -8,6 +9,7 @@ import Button from '../components/Button';
 
 function Dashboard() {
   const { user, userProfile } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalTasks: 0,
     completedTasks: 0,
@@ -146,7 +148,11 @@ function Dashboard() {
           <div className="bg-white rounded-lg shadow-md">
             <div className="px-6 py-4 border-b flex justify-between items-center">
               <h3 className="text-lg font-semibold text-gray-900">Recent Tasks</h3>
-              <Button size="sm" className="flex items-center space-x-1">
+              <Button 
+                size="sm" 
+                className="flex items-center space-x-1"
+                onClick={() => navigate('/tasks')}
+              >
                 <Plus className="w-4 h-4" />
                 <span>New Task</span>
               </Button>
@@ -163,7 +169,7 @@ function Dashboard() {
                   <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                   <h4 className="text-lg font-medium text-gray-900 mb-2">No tasks yet</h4>
                   <p className="text-gray-600 mb-4">Create your first task to get started!</p>
-                  <Button>Create Task</Button>
+                  <Button onClick={() => navigate('/tasks')}>Create Task</Button>
                 </div>
               )}
             </div>
@@ -207,15 +213,27 @@ function Dashboard() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => navigate('/tasks')}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Create New Task
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => navigate('/projects')}
+              >
                 <Users className="w-4 h-4 mr-2" />
-                Join Project
+                View Projects
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => navigate('/rewards')}
+              >
                 <Star className="w-4 h-4 mr-2" />
                 View Rewards
               </Button>
