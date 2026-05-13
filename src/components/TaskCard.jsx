@@ -54,8 +54,7 @@ function TaskCard({ task, onTaskUpdate }) {
       if (onTaskUpdate) {
         onTaskUpdate({ ...task, ...updateData });
       }
-    } catch (error) {
-      console.error('Error updating task:', error);
+        } catch (error) {
       toast.error('Failed to update task');
     } finally {
       setLoading(false);

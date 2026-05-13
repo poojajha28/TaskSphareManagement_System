@@ -48,7 +48,6 @@ function Projects() {
       setShowCreateModal(false);
       toast.success('Project created successfully!');
     } catch (error) {
-      console.error('Error creating project:', error);
       toast.error('Failed to create project');
     }
   };
@@ -124,7 +123,7 @@ function Projects() {
             project={project}
             onClick={(project) => {
               // Handle project click - could navigate to project details
-              console.log('Project clicked:', project);
+              // Project details navigation would go here
             }}
           />
         ))}
@@ -187,7 +186,7 @@ function CreateProjectModal({ onClose, onSubmit }) {
       await onSubmit(projectData);
       // Modal will be closed by the parent component after successful submission
     } catch (error) {
-      console.error('Error in form submission:', error);
+      // Error handling is done by parent component
     } finally {
       setIsSubmitting(false);
     }

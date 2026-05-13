@@ -24,7 +24,6 @@ function Login() {
       await login(email, password);
       navigate('/');
     } catch (error) {
-      // Error is handled in the auth context
     } finally {
       setLoading(false);
     }

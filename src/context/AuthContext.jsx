@@ -91,7 +91,7 @@ export function AuthProvider({ children }) {
       
       await updateDoc(userRef, updates);
       
-      // Update local state
+      // Update local state immediately
       setUserProfile(prev => ({
         ...prev,
         rewardPoints: (prev?.rewardPoints || 0) + points,
@@ -99,10 +99,34 @@ export function AuthProvider({ children }) {
         rating: taskCompleted ? Math.min(5, Math.floor(((prev?.tasksCompleted || 0) + 1) / 10) + 1) : prev?.rating
       }));
       
-      toast.success(`+${points} reward points earned!`);
+      // Also refresh from database to ensure sync
+      setTimeout(async () => {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            setUserProfile(userDoc.data());
+          }
+        } catch (error) {
+          // Silent fail for profile refresh
+        }
+      }, 1000);
+      
+      toast.success(`+${points} reward points earned! 🎉`);
     } catch (error) {
-      console.error('Error updating rewards:', error);
       toast.error('Failed to update rewards');
+    }
+  }
+
+  async function refreshUserProfile() {
+    if (!user) return;
+    
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        setUserProfile(userDoc.data());
+      }
+    } catch (error) {
+      // Silent fail for profile refresh
     }
   }
 
@@ -118,7 +142,7 @@ export function AuthProvider({ children }) {
             setUserProfile(userDoc.data());
           }
         } catch (error) {
-          console.error('Error fetching user profile:', error);
+          // Silent fail for profile fetch
         }
       } else {
         setUserProfile(null);
@@ -136,7 +160,8 @@ export function AuthProvider({ children }) {
     signup,
     login,
     logout,
-    updateUserRewards
+    updateUserRewards,
+    refreshUserProfile
   };
 
   return (

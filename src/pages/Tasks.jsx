@@ -6,7 +6,6 @@ import { useAuth } from '../context/AuthContext';
 import TaskCard from '../components/TaskCard';
 import Modal from '../components/Modal';
 import Button from '../components/Button';
-import UserCard from '../components/UserCard';
 import toast from 'react-hot-toast';
 
 const statusColumns = [
@@ -52,7 +51,6 @@ function Tasks() {
       setShowCreateModal(false);
       toast.success('Task created successfully!');
     } catch (error) {
-      console.error('Error creating task:', error);
       toast.error('Failed to create task');
     }
   };
@@ -197,7 +195,6 @@ function CreateTaskModal({ onClose, onSubmit }) {
       }));
       setUsers(usersData);
     } catch (error) {
-      console.error('Error fetching users:', error);
       toast.error('Failed to load users');
     } finally {
       setLoadingUsers(false);

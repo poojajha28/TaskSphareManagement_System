@@ -94,7 +94,7 @@ function Rewards() {
       const claimed = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setClaimedRewards(claimed);
     } catch (error) {
-      console.error('Error fetching claimed rewards:', error);
+      // Claimed rewards will remain empty
     } finally {
       setLoading(false);
     }
@@ -134,7 +134,6 @@ function Rewards() {
 
       toast.success(`${reward.name} claimed successfully! Check with HR for fulfillment.`);
     } catch (error) {
-      console.error('Error claiming reward:', error);
       toast.error('Failed to claim reward');
     }
   };

@@ -69,7 +69,7 @@ function Dashboard() {
         totalProjects: allProjects.length
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      // Stats will remain at default values
     }
   };
 

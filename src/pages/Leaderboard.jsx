@@ -29,7 +29,7 @@ function Leaderboard() {
       const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setTopUsers(users);
     } catch (error) {
-      console.error('Error fetching leaderboard:', error);
+      // Leaderboard will remain empty
     } finally {
       setLoading(false);
     }
