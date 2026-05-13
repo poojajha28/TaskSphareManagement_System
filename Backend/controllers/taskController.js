@@ -10,6 +10,17 @@ class TaskController {
     }
   }
 
+  async getOverdueTasks(req, res) {
+    try {
+      const userId = req.user && req.user.id;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+      const tasks = await taskService.getOverdueTasksForUser(userId);
+      res.json(tasks);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
   async createTask(req, res) {
     try {
       const { title, description, priority, estimated_hours, due_date, assigned_to } = req.body;

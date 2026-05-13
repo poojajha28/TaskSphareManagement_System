@@ -1,12 +1,29 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Star, Coins, User, Shield, Menu, X } from 'lucide-react';
+import { LogOut, Star, Coins, User, Shield, Menu, X, Bell } from 'lucide-react';
+import { api } from '../config/api';
 
 function Navbar() {
   const { logout, userProfile } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const [showNotif, setShowNotif] = useState(false);
+  const [overdueTasks, setOverdueTasks] = useState([]);
+  const [loadingNotif, setLoadingNotif] = useState(false);
+  const notifRef = useRef(null);
+
+  useEffect(() => {
+    function handleDocClick(e) {
+      if (!notifRef.current) return;
+      if (showNotif && !notifRef.current.contains(e.target)) {
+        setShowNotif(false);
+      }
+    }
+    document.addEventListener('mousedown', handleDocClick);
+    return () => document.removeEventListener('mousedown', handleDocClick);
+  }, [showNotif]);
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: '🏠' },
@@ -115,6 +132,79 @@ function Navbar() {
                 <Menu className="w-6 h-6 text-gray-600" />
               )}
             </button>
+
+            {/* Notification Bell */}
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={async () => {
+                  const opening = !showNotif;
+                  setShowNotif(opening);
+                  if (opening) {
+                    setLoadingNotif(true);
+                    try {
+                      const res = await api.getOverdueTasks();
+                      const tasks = Array.isArray(res) ? res : (res && res.data) || [];
+                      const mapped = (tasks || []).map((t) => ({
+                        ...t,
+                        daysOverdue: Math.max(1, Math.floor((Date.now() - Date.parse(t.due_date)) / (1000 * 60 * 60 * 24)))
+                      }));
+                      setOverdueTasks(mapped);
+                    } catch (err) {
+                      setOverdueTasks([]);
+                    } finally {
+                      setLoadingNotif(false);
+                    }
+                  }
+                }}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
+                title="Notifications"
+              >
+                <Bell className="w-5 h-5 text-gray-700" />
+                {overdueTasks.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{overdueTasks.length}</span>
+                )}
+              </button>
+
+              {showNotif && (
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
+                  <div className="p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-semibold">Overdue Tasks</h4>
+                      <button onClick={() => setShowNotif(false)} className="text-gray-400 hover:text-gray-600">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {loadingNotif && <div className="text-sm text-gray-500">Loading...</div>}
+
+                    {!loadingNotif && overdueTasks.length === 0 && (
+                      <div className="text-sm text-gray-500">No overdue tasks</div>
+                    )}
+
+                    <div className="space-y-2 max-h-64 overflow-auto">
+                      {overdueTasks.map((t) => (
+                        <div
+                          key={t.id}
+                          onClick={() => {
+                            setShowNotif(false);
+                            navigate(`/tasks/${t.id}`);
+                          }}
+                          className="cursor-pointer p-2 rounded hover:bg-gray-50 border border-transparent hover:border-gray-100"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium text-gray-900 truncate">{t.title}</div>
+                              <div className="text-xs text-gray-500 truncate">Due: {new Date(t.due_date).toLocaleDateString()}</div>
+                            </div>
+                            <div className="ml-2 text-xs text-red-600 font-semibold">{t.daysOverdue}d</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Logout Button */}
             <button
