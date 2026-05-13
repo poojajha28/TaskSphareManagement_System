@@ -19,9 +19,24 @@ This is a **web application** that helps teams manage their work:
 
 ## ✨ Main Features
 
-### 1. **Two Types of Users**
-- **Admin**: Can create tasks, assign to anyone, view all tasks
-- **Regular User**: Can only see their assigned tasks and complete them
+### 1. **Role-Based Access Control**
+
+#### **Regular User (Non-Admin)**
+- Can **only view their own assigned tasks** and their personal progress
+- Can see **their own deadlines, task status, and due dates**
+- Can update the status of their assigned tasks (To Do → In Progress → Review → Done)
+- Can **only view their own reward points and rating**
+- Cannot see other team members' tasks or progress
+- Cannot create or assign tasks
+
+#### **Admin User**
+- Can **view all tasks** across all team members
+- Can see **everyone's progress, deadlines, and due dates**
+- Can **create new tasks** with title, description, priority, and deadline
+- Can **assign tasks** to any team member
+- Can **view all users' reward points and ratings**
+- Can access the **Admin Users panel** to manage team members
+- Has full visibility into the entire project management system
 
 ### 2. **Task Management**
 - Create tasks with title, description, priority (low/medium/high)
