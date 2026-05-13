@@ -11,6 +11,7 @@ import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
 import Leaderboard from './pages/Leaderboard';
 import Rewards from './pages/Rewards';
+import FirebaseDebug from './components/FirebaseDebug';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -35,6 +36,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/debug" element={<FirebaseDebug />} />
             <Route path="/*" element={
               <ProtectedRoute>
                 <div className="flex flex-col min-h-screen">

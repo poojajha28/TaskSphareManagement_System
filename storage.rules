@@ -1,0 +1,19 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Users can upload their own profile pictures
+    match /users/{userId}/avatar {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Project attachments - team members can upload
+    match /projects/{projectId}/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Task attachments - authenticated users can upload
+    match /tasks/{taskId}/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
