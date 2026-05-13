@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Clock, User, Star, Calendar, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { doc, updateDoc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
 import { calculateRewardPoints } from '../utils/reward';
 import toast from 'react-hot-toast';
+import { api } from '../config/api';
 
 const priorityColors = {
   low: 'bg-green-100 text-green-800',
@@ -28,41 +27,31 @@ function TaskCard({ task, onTaskUpdate }) {
     
     setLoading(true);
     try {
-      const taskRef = doc(db, 'tasks', task.id);
-      const updateData = {
-        status: newStatus,
-        updatedAt: Timestamp.now()
-      };
-
-      // If task is being completed
-      if (newStatus === 'done' && task.status !== 'done' && task.assignedTo === user.uid) {
-        updateData.completedAt = Timestamp.now();
-        
-        // Calculate reward points
-        const points = calculateRewardPoints(task);
-        
-        // Update task and user rewards
-        await updateDoc(taskRef, updateData);
-        await updateUserRewards(points, true);
-        
-        toast.success(`Task completed! Earned ${points} points!`);
+      // API call to update task
+      const response = await api.patch(`/tasks/${task.id}`, { status: newStatus });
+      
+      // Server already handles reward calculation
+      if (newStatus === 'done' && task.status !== 'done' && response.points) {
+        toast.success(`Task completed! Earned ${response.points} points!`);
+        // Refresh user profile to get updated points
+        await updateUserRewards(0); // This will call fetchUserProfile
       } else {
-        await updateDoc(taskRef, updateData);
         toast.success('Task status updated!');
       }
 
       if (onTaskUpdate) {
-        onTaskUpdate({ ...task, ...updateData });
+        onTaskUpdate({ ...task, status: newStatus });
       }
-        } catch (error) {
+    } catch (error) {
       toast.error('Failed to update task');
     } finally {
       setLoading(false);
     }
   };
 
-  const isOverdue = task.dueDate && new Date(task.dueDate.toDate()) < new Date() && task.status !== 'done';
-  const canComplete = task.assignedTo === user.uid && task.status !== 'done';
+  // Convert MySQL date field for checking
+  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
+  const canComplete = task.assigned_to === user?.id && task.status !== 'done';
 
   return (
     <div className={`bg-white rounded-lg shadow-md border-l-4 p-4 hover:shadow-lg transition-shadow ${
@@ -83,17 +72,17 @@ function TaskCard({ task, onTaskUpdate }) {
       <p className="text-gray-600 text-sm mb-4 line-clamp-3">{task.description}</p>
 
       <div className="space-y-2 mb-4">
-        {task.assignedToName && (
+        {task.assigned_to_name && (
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <User className="w-4 h-4" />
-            <span>{task.assignedToName}</span>
+            <span>{task.assigned_to_name}</span>
           </div>
         )}
 
-        {task.dueDate && (
+        {task.due_date && (
           <div className={`flex items-center space-x-2 text-sm ${isOverdue ? 'text-red-600' : 'text-gray-600'}`}>
             <Calendar className="w-4 h-4" />
-            <span>{task.dueDate.toDate().toLocaleDateString()}</span>
+            <span>{new Date(task.due_date).toLocaleDateString()}</span>
             {isOverdue && <span className="text-red-500 font-medium">(Overdue)</span>}
           </div>
         )}
@@ -103,10 +92,10 @@ function TaskCard({ task, onTaskUpdate }) {
           <span>{calculateRewardPoints(task)} points</span>
         </div>
 
-        {task.estimatedHours && (
+        {task.estimated_hours && (
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <Clock className="w-4 h-4" />
-            <span>{task.estimatedHours}h estimated</span>
+            <span>{task.estimated_hours}h estimated</span>
           </div>
         )}
       </div>

@@ -1,18 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db } from '../firebase';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged 
-} from 'firebase/auth';
-import { 
-  doc, 
-  setDoc, 
-  getDoc, 
-  updateDoc, 
-  increment 
-} from 'firebase/firestore';
+import { api } from '../config/api';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -26,25 +13,51 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchUserProfile();
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  async function fetchUserProfile() {
+    try {
+      const profile = await api.get('/auth/me');
+      setUser({ id: profile.id, email: profile.email });
+      setUserProfile({
+        uid: profile.id,
+        displayName: profile.name,
+        email: profile.email,
+        rewardPoints: profile.rewardPoints,
+        rating: profile.rating,
+        tasksCompleted: profile.tasksCompleted,
+        projectsCompleted: profile.projectsCompleted,
+        createdAt: profile.createdAt
+      });
+    } catch (error) {
+      localStorage.removeItem('token');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function signup(email, password, displayName) {
     try {
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // Create user profile in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: displayName,
+      const data = await api.post('/auth/signup', { email, password, name: displayName });
+      localStorage.setItem('token', data.token);
+      setUser({ id: data.user.id, email: data.user.email });
+      setUserProfile({
+        uid: data.user.id,
+        displayName: data.user.name,
+        email: data.user.email,
         rewardPoints: 0,
         rating: 0,
-        tasksCompleted: 0,
-        projectsCompleted: 0,
-        createdAt: new Date(),
-        avatar: null
+        tasksCompleted: 0
       });
-      
       toast.success('Account created successfully!');
-      return user;
+      return data.user;
     } catch (error) {
       toast.error(error.message);
       throw error;
@@ -53,9 +66,19 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      const data = await api.post('/auth/login', { email, password });
+      localStorage.setItem('token', data.token);
+      setUser({ id: data.user.id, email: data.user.email });
+      setUserProfile({
+        uid: data.user.id,
+        displayName: data.user.name,
+        email: data.user.email,
+        rewardPoints: data.user.rewardPoints,
+        rating: data.user.rating,
+        tasksCompleted: data.user.tasksCompleted
+      });
       toast.success('Logged in successfully!');
-      return result;
+      return data;
     } catch (error) {
       toast.error(error.message);
       throw error;
@@ -63,96 +86,19 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    try {
-      await signOut(auth);
-      setUserProfile(null);
-      toast.success('Logged out successfully!');
-    } catch (error) {
-      toast.error(error.message);
-    }
+    localStorage.removeItem('token');
+    setUser(null);
+    setUserProfile(null);
+    toast.success('Logged out successfully!');
   }
 
   async function updateUserRewards(points, taskCompleted = false) {
-    if (!user) return;
-    
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      const updates = {
-        rewardPoints: increment(points)
-      };
-      
-      if (taskCompleted) {
-        updates.tasksCompleted = increment(1);
-        // Calculate new rating based on tasks completed
-        const newTasksCompleted = (userProfile?.tasksCompleted || 0) + 1;
-        const newRating = Math.min(5, Math.floor(newTasksCompleted / 10) + 1);
-        updates.rating = newRating;
-      }
-      
-      await updateDoc(userRef, updates);
-      
-      // Update local state immediately
-      setUserProfile(prev => ({
-        ...prev,
-        rewardPoints: (prev?.rewardPoints || 0) + points,
-        tasksCompleted: taskCompleted ? (prev?.tasksCompleted || 0) + 1 : prev?.tasksCompleted,
-        rating: taskCompleted ? Math.min(5, Math.floor(((prev?.tasksCompleted || 0) + 1) / 10) + 1) : prev?.rating
-      }));
-      
-      // Also refresh from database to ensure sync
-      setTimeout(async () => {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            setUserProfile(userDoc.data());
-          }
-        } catch (error) {
-          // Silent fail for profile refresh
-        }
-      }, 1000);
-      
-      toast.success(`+${points} reward points earned! 🎉`);
-    } catch (error) {
-      toast.error('Failed to update rewards');
-    }
+    await fetchUserProfile();
   }
 
   async function refreshUserProfile() {
-    if (!user) return;
-    
-    try {
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (userDoc.exists()) {
-        setUserProfile(userDoc.data());
-      }
-    } catch (error) {
-      // Silent fail for profile refresh
-    }
+    await fetchUserProfile();
   }
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      
-      if (user) {
-        // Fetch user profile
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            setUserProfile(userDoc.data());
-          }
-        } catch (error) {
-          // Silent fail for profile fetch
-        }
-      } else {
-        setUserProfile(null);
-      }
-      
-      setLoading(false);
-    });
-
-    return unsubscribe;
-  }, []);
 
   const value = {
     user,

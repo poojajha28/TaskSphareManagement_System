@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Gift, Coins, Star, ShoppingCart, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
 import toast from 'react-hot-toast';
+import { api } from '../config/api';
 
 const availableRewards = [
   {
@@ -73,7 +72,7 @@ const availableRewards = [
 ];
 
 function Rewards() {
-  const { user, userProfile, updateUserRewards } = useAuth();
+  const { user, userProfile } = useAuth();
   const [claimedRewards, setClaimedRewards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -86,15 +85,18 @@ function Rewards() {
     if (!user) return;
     
     try {
-      const q = query(
-        collection(db, 'claimedRewards'),
-        where('userId', '==', user.uid)
-      );
-      const snapshot = await getDocs(q);
-      const claimed = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setClaimedRewards(claimed);
+      const claimed = await api.get('/rewards/claimed');
+      // Convert field names
+      const formattedClaimed = claimed.map(c => ({
+        ...c,
+        userId: c.user_id,
+        rewardId: c.reward_id,
+        rewardName: c.reward_name,
+        claimedAt: { toDate: () => new Date(c.claimed_at) }
+      }));
+      setClaimedRewards(formattedClaimed);
     } catch (error) {
-      // Claimed rewards will remain empty
+      console.error('Failed to fetch claimed rewards');
     } finally {
       setLoading(false);
     }
@@ -109,30 +111,16 @@ function Rewards() {
     }
 
     try {
-      // Add to claimed rewards
-      await addDoc(collection(db, 'claimedRewards'), {
-        userId: user.uid,
-        rewardId: reward.id,
-        rewardName: reward.name,
-        cost: reward.cost,
-        claimedAt: Timestamp.now(),
-        status: 'pending'
+      await api.post('/rewards/claim', {
+        reward_id: reward.id,
+        reward_name: reward.name,
+        cost: reward.cost
       });
 
-      // Deduct points from user
-      await updateUserRewards(-reward.cost);
-      
-      // Update local state
-      setClaimedRewards(prev => [...prev, {
-        userId: user.uid,
-        rewardId: reward.id,
-        rewardName: reward.name,
-        cost: reward.cost,
-        claimedAt: Timestamp.now(),
-        status: 'pending'
-      }]);
-
       toast.success(`${reward.name} claimed successfully! Check with HR for fulfillment.`);
+      
+      // Refresh data
+      fetchClaimedRewards();
     } catch (error) {
       toast.error('Failed to claim reward');
     }

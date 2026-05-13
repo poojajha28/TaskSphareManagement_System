@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
 import { BarChart3, TrendingUp, Users, CheckCircle, Star, Coins, Calendar, Plus } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import Button from '../components/Button';
+import { api } from '../config/api';
 
 function Dashboard() {
   const { user, userProfile } = useAuth();
@@ -21,55 +20,41 @@ function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
-
-    // Fetch user's tasks
-    const tasksQuery = query(
-      collection(db, 'tasks'),
-      where('assignedTo', '==', user.uid),
-      orderBy('updatedAt', 'desc'),
-      limit(5)
-    );
-
-    const unsubscribe = onSnapshot(tasksQuery, (snapshot) => {
-      const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setRecentTasks(tasks);
-    });
-
-    // Fetch stats
-    fetchStats();
-
-    setLoading(false);
-    return unsubscribe;
+    fetchDashboardData();
   }, [user]);
 
-  const fetchStats = async () => {
-    if (!user) return;
-
+  const fetchDashboardData = async () => {
     try {
-      // Get all tasks assigned to user
-      const tasksQuery = query(
-        collection(db, 'tasks'),
-        where('assignedTo', '==', user.uid)
-      );
-      const tasksSnapshot = await getDocs(tasksQuery);
-      const allTasks = tasksSnapshot.docs.map(doc => doc.data());
-
-      // Get all projects where user is a member
-      const projectsQuery = query(
-        collection(db, 'projects')
-      );
-      const projectsSnapshot = await getDocs(projectsQuery);
-      const allProjects = projectsSnapshot.docs.map(doc => doc.data())
-        .filter(project => project.teamMembers?.some(member => member.uid === user.uid));
-
+      // Fetch all tasks
+      const allTasks = await api.get('/tasks');
+      
+      // Filter user's tasks
+      const userTasks = allTasks.filter(task => task.assigned_to === user.id);
+      
+      // Get recent 5 tasks
+      const recentUserTasks = userTasks.slice(0, 5);
+      
+      // Convert MySQL fields to match UI expectations
+      const formattedTasks = recentUserTasks.map(task => ({
+        ...task,
+        due_date: task.due_date,
+        estimated_hours: task.estimated_hours,
+        assigned_to_name: task.assigned_to_name
+      }));
+      
+      setRecentTasks(formattedTasks);
+      
+      // Calculate stats
       setStats({
-        totalTasks: allTasks.length,
-        completedTasks: allTasks.filter(task => task.status === 'done').length,
-        inProgressTasks: allTasks.filter(task => task.status === 'in-progress').length,
-        totalProjects: allProjects.length
+        totalTasks: userTasks.length,
+        completedTasks: userTasks.filter(t => t.status === 'done').length,
+        inProgressTasks: userTasks.filter(t => t.status === 'in-progress').length,
+        totalProjects: 0 // Can fetch from /projects if needed
       });
     } catch (error) {
-      // Stats will remain at default values
+      console.error('Failed to fetch dashboard data', error);
+    } finally {
+      setLoading(false);
     }
   };
 

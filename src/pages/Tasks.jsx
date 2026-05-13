@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Filter, Search, Users } from 'lucide-react';
-import { collection, query, orderBy, onSnapshot, addDoc, Timestamp, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import TaskCard from '../components/TaskCard';
 import Modal from '../components/Modal';
 import Button from '../components/Button';
 import toast from 'react-hot-toast';
+import { api } from '../config/api';
 
 const statusColumns = [
   { id: 'todo', title: 'To Do', color: 'bg-gray-100' },
@@ -24,32 +23,34 @@ function Tasks() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const q = query(collection(db, 'tasks'), orderBy('createdAt', 'desc'));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const tasksData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setTasks(tasksData);
-      setLoading(false);
-    });
-
-    return unsubscribe;
+    fetchTasks();
   }, []);
+
+  const fetchTasks = async () => {
+    try {
+      const tasksData = await api.get('/tasks');
+      setTasks(tasksData);
+    } catch (error) {
+      toast.error('Failed to fetch tasks');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCreateTask = async (taskData) => {
     try {
-      await addDoc(collection(db, 'tasks'), {
-        ...taskData,
-        createdBy: user.uid,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-        status: 'todo'
+      await api.post('/tasks', {
+        title: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority,
+        estimated_hours: taskData.estimatedHours,
+        due_date: taskData.dueDate,
+        assigned_to: taskData.assignedTo
       });
       
       setShowCreateModal(false);
       toast.success('Task created successfully!');
+      fetchTasks(); // Refresh tasks list
     } catch (error) {
       toast.error('Failed to create task');
     }
@@ -57,11 +58,11 @@ function Tasks() {
 
   const filteredTasks = tasks.filter(task => {
     const matchesFilter = filter === 'all' || 
-      (filter === 'my-tasks' && task.assignedTo === user.uid) ||
-      (filter === 'created-by-me' && task.createdBy === user.uid);
+      (filter === 'my-tasks' && task.assigned_to === user?.id) ||
+      (filter === 'created-by-me' && task.created_by === user?.id);
     
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesFilter && matchesSearch;
   });
@@ -166,15 +167,15 @@ function Tasks() {
 }
 
 function CreateTaskModal({ onClose, onSubmit }) {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     priority: 'medium',
     estimatedHours: '',
     dueDate: '',
-    assignedTo: user?.uid || '', // Default assign to self
-    assignedToName: user?.displayName || ''
+    assignedTo: user?.id || '', // MySQL uses id
+    assignedToName: userProfile?.displayName || ''
   });
   const [users, setUsers] = useState([]);
   const [showUserSelector, setShowUserSelector] = useState(false);
@@ -188,12 +189,18 @@ function CreateTaskModal({ onClose, onSubmit }) {
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      const usersSnapshot = await getDocs(collection(db, 'users'));
-      const usersData = usersSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      const usersData = await api.get('/users');
+      // Convert MySQL field names to match UI expectations
+      const formattedUsers = usersData.map(u => ({
+        id: u.id,
+        uid: u.id, // For compatibility
+        displayName: u.name,
+        email: u.email,
+        rewardPoints: u.reward_points,
+        rating: u.rating,
+        tasksCompleted: u.tasks_completed
       }));
-      setUsers(usersData);
+      setUsers(formattedUsers);
     } catch (error) {
       toast.error('Failed to load users');
     } finally {
@@ -204,7 +211,7 @@ function CreateTaskModal({ onClose, onSubmit }) {
   const handleUserSelect = (selectedUser) => {
     setFormData({
       ...formData,
-      assignedTo: selectedUser.uid,
+      assignedTo: selectedUser.id,
       assignedToName: selectedUser.displayName || selectedUser.email
     });
     setShowUserSelector(false);
@@ -223,9 +230,12 @@ function CreateTaskModal({ onClose, onSubmit }) {
     }
 
     const taskData = {
-      ...formData,
+      title: formData.title,
+      description: formData.description,
+      priority: formData.priority,
       estimatedHours: formData.estimatedHours ? parseInt(formData.estimatedHours) : null,
-      dueDate: formData.dueDate ? Timestamp.fromDate(new Date(formData.dueDate)) : null
+      dueDate: formData.dueDate || null,
+      assignedTo: formData.assignedTo
     };
 
     onSubmit(taskData);
