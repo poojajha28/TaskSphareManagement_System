@@ -1,6 +1,6 @@
 # TaskSphere - Task Management System
 
-A **Jira-like task management system** where users can create tasks, assign them to team members, and earn rewards for completing tasks on time.
+A **Task management system** where users can create tasks, assign them to team members, and earn rewards for completing tasks on time.
 
 ---
 
