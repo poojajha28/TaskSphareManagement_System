@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Star, Coins, User } from 'lucide-react';
+import { LogOut, Star, Coins, User, Shield } from 'lucide-react';
 
 function Navbar() {
   const { logout, userProfile } = useAuth();
@@ -14,6 +14,10 @@ function Navbar() {
     { path: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
     { path: '/rewards', label: 'Rewards', icon: '🎁' }
   ];
+
+  const adminNavItems = userProfile?.role === 'admin' 
+    ? [{ path: '/admin/users', label: 'Users', icon: '👥' }]
+    : [];
 
   return (
     <nav className="bg-white shadow-lg border-b">
@@ -28,7 +32,7 @@ function Navbar() {
             </Link>
           </div>
 
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-6">
             {navItems.map((item) => (
               <Link
                 key={item.path}
@@ -43,11 +47,32 @@ function Navbar() {
                 <span>{item.label}</span>
               </Link>
             ))}
+            
+            {adminNavItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === item.path
+                    ? 'bg-red-100 text-red-700'
+                    : 'text-red-600 hover:text-red-900 hover:bg-red-50'
+                }`}
+              >
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            ))}
           </div>
 
           <div className="flex items-center space-x-4">
             {/* User Stats */}
             <div className="flex items-center space-x-4 bg-gray-50 px-3 py-2 rounded-lg">
+              {userProfile?.role === 'admin' && (
+                <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-bold flex items-center space-x-1">
+                  <Shield className="w-3 h-3" />
+                  <span>ADMIN</span>
+                </span>
+              )}
               <div className="flex items-center space-x-1">
                 <Coins className="w-4 h-4 text-yellow-500" />
                 <span className="text-sm font-medium">{userProfile?.rewardPoints || 0}</span>

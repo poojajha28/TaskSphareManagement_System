@@ -15,7 +15,7 @@ const statusColumns = [
 ];
 
 function Tasks() {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -50,16 +50,21 @@ function Tasks() {
       
       setShowCreateModal(false);
       toast.success('Task created successfully!');
-      fetchTasks(); // Refresh tasks list
+      fetchTasks();
     } catch (error) {
       toast.error('Failed to create task');
     }
   };
 
   const filteredTasks = tasks.filter(task => {
-    const matchesFilter = filter === 'all' || 
-      (filter === 'my-tasks' && task.assigned_to === user?.id) ||
-      (filter === 'created-by-me' && task.created_by === user?.id);
+    // Admin sees all, users see only their assigned tasks
+    const matchesFilter = filter === 'all' 
+      ? (userProfile?.role === 'admin' || task.assigned_to === user?.id)
+      : filter === 'my-tasks' 
+      ? task.assigned_to === user?.id
+      : filter === 'created-by-me' 
+      ? task.created_by === user?.id
+      : false;
     
     const matchesSearch = task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -85,7 +90,9 @@ function Tasks() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
-          <p className="text-gray-600 mt-1">Manage and track your tasks</p>
+          <p className="text-gray-600 mt-1">
+            {userProfile?.role === 'admin' ? 'Manage all tasks' : 'Manage and track your tasks'}
+          </p>
         </div>
         <Button
           onClick={() => setShowCreateModal(true)}
@@ -105,9 +112,9 @@ function Tasks() {
             onChange={(e) => setFilter(e.target.value)}
             className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">All Tasks</option>
-            <option value="my-tasks">My Tasks</option>
-            <option value="created-by-me">Created by Me</option>
+            <option value="all">{userProfile?.role === 'admin' ? 'All Tasks' : 'My Tasks'}</option>
+            <option value="my-tasks">Assigned to Me</option>
+            {userProfile?.role === 'admin' && <option value="created-by-me">Created by Me</option>}
           </select>
         </div>
         
@@ -174,14 +181,13 @@ function CreateTaskModal({ onClose, onSubmit }) {
     priority: 'medium',
     estimatedHours: '',
     dueDate: '',
-    assignedTo: user?.id || '', // MySQL uses id
+    assignedTo: user?.id || '',
     assignedToName: userProfile?.displayName || ''
   });
   const [users, setUsers] = useState([]);
   const [showUserSelector, setShowUserSelector] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
-  // Fetch all users for assignment
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -190,12 +196,12 @@ function CreateTaskModal({ onClose, onSubmit }) {
     setLoadingUsers(true);
     try {
       const usersData = await api.get('/users');
-      // Convert MySQL field names to match UI expectations
       const formattedUsers = usersData.map(u => ({
         id: u.id,
-        uid: u.id, // For compatibility
+        uid: u.id,
         displayName: u.name,
         email: u.email,
+        role: u.role,
         rewardPoints: u.reward_points,
         rating: u.rating,
         tasksCompleted: u.tasks_completed
@@ -381,9 +387,16 @@ function CreateTaskModal({ onClose, onSubmit }) {
                           </span>
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">
-                            {userData.displayName || 'Unknown User'}
-                          </h4>
+                          <div className="flex items-center space-x-2">
+                            <h4 className="font-medium text-gray-900">
+                              {userData.displayName || 'Unknown User'}
+                            </h4>
+                            {userData.role === 'admin' && (
+                              <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold">
+                                ADMIN
+                              </span>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-600">{userData.email}</p>
                           <div className="flex items-center space-x-4 mt-1">
                             <span className="text-xs text-gray-500">

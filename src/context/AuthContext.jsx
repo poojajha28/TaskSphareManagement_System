@@ -25,11 +25,12 @@ export function AuthProvider({ children }) {
   async function fetchUserProfile() {
     try {
       const profile = await api.get('/auth/me');
-      setUser({ id: profile.id, email: profile.email });
+      setUser({ id: profile.id, email: profile.email, role: profile.role });
       setUserProfile({
         uid: profile.id,
         displayName: profile.name,
         email: profile.email,
+        role: profile.role,  // Add role
         rewardPoints: profile.rewardPoints,
         rating: profile.rating,
         tasksCompleted: profile.tasksCompleted,
@@ -47,11 +48,12 @@ export function AuthProvider({ children }) {
     try {
       const data = await api.post('/auth/signup', { email, password, name: displayName });
       localStorage.setItem('token', data.token);
-      setUser({ id: data.user.id, email: data.user.email });
+      setUser({ id: data.user.id, email: data.user.email, role: data.user.role });
       setUserProfile({
         uid: data.user.id,
         displayName: data.user.name,
         email: data.user.email,
+        role: data.user.role,
         rewardPoints: 0,
         rating: 0,
         tasksCompleted: 0
@@ -68,11 +70,12 @@ export function AuthProvider({ children }) {
     try {
       const data = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', data.token);
-      setUser({ id: data.user.id, email: data.user.email });
+      setUser({ id: data.user.id, email: data.user.email, role: data.user.role });
       setUserProfile({
         uid: data.user.id,
         displayName: data.user.name,
         email: data.user.email,
+        role: data.user.role,
         rewardPoints: data.user.rewardPoints,
         rating: data.user.rating,
         tasksCompleted: data.user.tasksCompleted
@@ -103,6 +106,7 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     userProfile,
+    isAdmin: userProfile?.role === 'admin',  // Helper
     signup,
     login,
     logout,

@@ -11,6 +11,7 @@ import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
 import Leaderboard from './pages/Leaderboard';
 import Rewards from './pages/Rewards';
+import AdminUsers from './pages/AdminUsers';
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   
@@ -45,6 +46,7 @@ function App() {
                       <Route path="/tasks" element={<Tasks />} />
                       <Route path="/leaderboard" element={<Leaderboard />} />
                       <Route path="/rewards" element={<Rewards />} />
+                      <Route path="/admin/users" element={<AdminUsers />} />
                     </Routes>
                   </main>
                 </div>
