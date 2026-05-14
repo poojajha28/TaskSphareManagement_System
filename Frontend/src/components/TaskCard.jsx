@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Clock, User, Star, Calendar, CheckCircle } from 'lucide-react';
+import { Clock, User, Calendar, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { calculateRewardPoints } from '../utils/reward';
 import toast from 'react-hot-toast';
 import { api } from '../config/api';
 
@@ -20,7 +19,7 @@ const statusColors = {
 };
 
 function TaskCard({ task, onTaskUpdate }) {
-  const { user, updateUserRewards } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [overdueInfo, setOverdueInfo] = useState({ isOverdueApi: false, daysOverdue: 0 });
   const [loadingOverdue, setLoadingOverdue] = useState(false);
@@ -54,17 +53,14 @@ function TaskCard({ task, onTaskUpdate }) {
 
   const handleStatusChange = async (newStatus) => {
     if (loading) return;
-    
+
     setLoading(true);
     try {
-      // API call to update task
-      const response = await api.patch(`/tasks/${task.id}`, { status: newStatus });
-      
-      // Server already handles reward calculation
-      if (newStatus === 'done' && task.status !== 'done' && response.points) {
-        toast.success(`Task completed! Earned ${response.points} points!`);
-        // Refresh user profile to get updated points
-        await updateUserRewards(0); // This will call fetchUserProfile
+      await api.patch(`/tasks/${task.id}`, { status: newStatus });
+
+      if (newStatus === 'done' && task.status !== 'done') {
+        toast.success('Task completed!');
+        await refreshUserProfile();
       } else {
         toast.success('Task status updated!');
       }
@@ -85,9 +81,8 @@ function TaskCard({ task, onTaskUpdate }) {
   const canComplete = task.assigned_to === user?.id && task.status !== 'done';
 
   return (
-    <div className={`bg-white rounded-lg shadow-md border-l-4 p-4 hover:shadow-lg transition-shadow ${
-      isOverdue ? 'border-l-red-500' : 'border-l-blue-500'
-    }`}>
+    <div className={`bg-white rounded-lg shadow-md border-l-4 p-4 hover:shadow-lg transition-shadow ${isOverdue ? 'border-l-red-500' : 'border-l-blue-500'
+      }`}>
       <div className="flex justify-between items-start mb-3">
         <h3 className="font-semibold text-gray-900 line-clamp-2">{task.title}</h3>
         <div className="flex items-center space-x-2">
@@ -122,10 +117,7 @@ function TaskCard({ task, onTaskUpdate }) {
           </div>
         )}
 
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <Star className="w-4 h-4" />
-          <span>{calculateRewardPoints(task)} points</span>
-        </div>
+
 
         {task.estimated_hours && (
           <div className="flex items-center space-x-2 text-sm text-gray-600">

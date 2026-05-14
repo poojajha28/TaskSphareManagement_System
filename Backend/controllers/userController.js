@@ -13,8 +13,7 @@ class UserController {
 
   async getLeaderboard(req, res) {
     try {
-      const orderBy = req.query.orderBy;
-      const users = await userService.getLeaderboard(orderBy);
+      const users = await userService.getLeaderboard();
       res.json(users);
     } catch (error) {
       res.status(400).json({ error: error.message });
@@ -23,4 +22,3 @@ class UserController {
 }
 
 module.exports = new UserController();
-

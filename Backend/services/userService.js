@@ -4,20 +4,17 @@ const pool = require('../config/database');
 class UserService {
   async getAllUsers() {
     const [users] = await pool.execute(
-      'SELECT id, name, email, role, reward_points, rating, tasks_completed, created_at FROM users ORDER BY name'
+      'SELECT id, name, email, role, tasks_completed, created_at FROM users ORDER BY name'
     );
     return users;
   }
 
-  async getLeaderboard(orderBy = 'reward_points') {
-    // Validate orderBy to prevent SQL injection
-    const validColumns = ['reward_points', 'rating', 'tasks_completed'];
-    const column = validColumns.includes(orderBy) ? orderBy : 'reward_points';
-    
+  async getLeaderboard(orderBy = 'tasks_completed') {
+    // Only allow ordering by tasks_completed now
     const [users] = await pool.execute(
-      `SELECT id, name, email, reward_points, rating, tasks_completed, created_at 
+      `SELECT id, name, email, tasks_completed, created_at 
        FROM users 
-       ORDER BY ${column} DESC 
+       ORDER BY tasks_completed DESC 
        LIMIT 10`
     );
     return users;
@@ -25,4 +22,3 @@ class UserService {
 }
 
 module.exports = new UserService();
-

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Users, Shield, Star, Coins, Target } from 'lucide-react';
+import { Users, Shield, Target } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../config/api';
 import { useNavigate } from 'react-router-dom';
@@ -62,12 +62,6 @@ function AdminUsers() {
                   Role
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Points
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Rating
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tasks
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -99,18 +93,6 @@ function AdminUsers() {
                     }`}>
                       {user.role}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-1">
-                      <Coins className="w-4 h-4 text-yellow-500" />
-                      <span className="text-sm text-gray-900">{user.reward_points || 0}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-4 h-4 text-orange-500" />
-                      <span className="text-sm text-gray-900">{user.rating || 0}/5</span>
-                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-1">
