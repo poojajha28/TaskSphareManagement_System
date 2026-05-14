@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Star, Coins, User, Shield, Menu, X, Bell } from 'lucide-react';
+import { LogOut, User, Shield, Menu, X, Bell } from 'lucide-react';
 import { api } from '../config/api';
 
 function Navbar() {
@@ -29,8 +29,7 @@ function Navbar() {
     { path: '/', label: 'Dashboard', icon: '🏠' },
     { path: '/projects', label: 'Projects', icon: '📁' },
     { path: '/tasks', label: 'Tasks', icon: '✅' },
-    { path: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
-    { path: '/rewards', label: 'Rewards', icon: '🎁' }
+    { path: '/leaderboard', label: 'Leaderboard', icon: '🏆' }
   ];
 
   const adminNavItems = userProfile?.role === 'admin' 
@@ -97,16 +96,10 @@ function Navbar() {
                 </span>
               )}
               <div className="flex items-center space-x-1 group">
-                <div className="p-1 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
-                  <Coins className="w-4 h-4 text-yellow-600" />
+                <div className="p-1 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                  <User className="w-4 h-4 text-blue-600" />
                 </div>
-                <span className="text-xs lg:text-sm font-bold text-gray-700">{userProfile?.rewardPoints || 0}</span>
-              </div>
-              <div className="flex items-center space-x-1 group">
-                <div className="p-1 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
-                  <Star className="w-4 h-4 text-orange-600" />
-                </div>
-                <span className="text-xs lg:text-sm font-bold text-gray-700">{userProfile?.rating || 0}/5</span>
+                <span className="text-xs lg:text-sm font-bold text-gray-700">{userProfile?.displayName}</span>
               </div>
             </div>
 

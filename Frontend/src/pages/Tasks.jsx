@@ -51,7 +51,7 @@ function Tasks() {
         assigned_to: taskData.assignedTo,
         project_id: taskData.projectId || null
       });
-      
+
       setShowCreateModal(false);
       toast.success('Task created successfully!');
       fetchTasks();
@@ -65,23 +65,23 @@ function Tasks() {
       const projectsData = await api.get('/projects');
       setProjects(projectsData);
     } catch (error) {
-     toast.error("Failed to load projects")
+      toast.error("Failed to load projects")
     }
   };
 
   const filteredTasks = tasks.filter(task => {
     // Admin sees all, users see only their assigned tasks
-    const matchesFilter = filter === 'all' 
+    const matchesFilter = filter === 'all'
       ? (userProfile?.role === 'admin' || task.assigned_to === user?.id)
-      : filter === 'my-tasks' 
-      ? task.assigned_to === user?.id
-      : filter === 'created-by-me' 
-      ? task.created_by === user?.id
-      : false;
-    
+      : filter === 'my-tasks'
+        ? task.assigned_to === user?.id
+        : filter === 'created-by-me'
+          ? task.created_by === user?.id
+          : false;
+
     const matchesSearch = task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     return matchesFilter && matchesSearch;
   });
 
@@ -110,7 +110,7 @@ function Tasks() {
         <Button
           onClick={() => {
             if (!projects || projects.length === 0) {
-              message.error('Please create a project first');
+              toast.error('Please create a project first');
               return;
             }
             setShowCreateModal(true);
@@ -136,7 +136,7 @@ function Tasks() {
             {userProfile?.role === 'admin' && <option value="created-by-me">Created by Me</option>}
           </select>
         </div>
-        
+
         <div className="flex items-center space-x-2 flex-1 max-w-md">
           <Search className="w-5 h-5 text-gray-500" />
           <input
@@ -159,7 +159,7 @@ function Tasks() {
                 {getTasksByStatus(column.id).length} tasks
               </span>
             </div>
-            
+
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {getTasksByStatus(column.id).map(task => (
                 <TaskCard
@@ -170,7 +170,7 @@ function Tasks() {
                   }}
                 />
               ))}
-              
+
               {getTasksByStatus(column.id).length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   <p>No tasks in this status</p>
@@ -238,8 +238,6 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
         displayName: u.name,
         email: u.email,
         role: u.role,
-        rewardPoints: u.reward_points,
-        rating: u.rating,
         tasksCompleted: u.tasks_completed
       }));
       setUsers(formattedUsers);
@@ -398,8 +396,8 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
               value={formData.projectId || ''}
               onChange={(e) => {
                 const selected = (localProjects || []).find(p => String(p.id) === e.target.value);
-                setFormData({ 
-                  ...formData, 
+                setFormData({
+                  ...formData,
                   projectId: e.target.value || null,
                   projectName: selected ? selected.name : ''
                 });
@@ -430,7 +428,7 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
           )}
         </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+        <div className="flex justify-end space-x-3 pt-4">
           <Button
             type="button"
             onClick={onClose}
@@ -446,8 +444,8 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
 
       {/* User Selection Modal */}
       {showUserSelector && (
-        <Modal 
-          onClose={() => setShowUserSelector(false)} 
+        <Modal
+          onClose={() => setShowUserSelector(false)}
           title="Select User to Assign"
         >
           <div className="space-y-4">
@@ -485,13 +483,7 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
                           <p className="text-sm text-gray-600">{userData.email}</p>
                           <div className="flex items-center space-x-4 mt-1">
                             <span className="text-xs text-gray-500">
-                              {userData.rewardPoints || 0} points
-                            </span>
-                            <span className="text-xs text-gray-500">
                               {userData.tasksCompleted || 0} tasks completed
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              ⭐ {userData.rating || 0}/5
                             </span>
                           </div>
                         </div>
@@ -499,7 +491,7 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
                     </div>
                   ))}
                 </div>
-                
+
                 {users.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />

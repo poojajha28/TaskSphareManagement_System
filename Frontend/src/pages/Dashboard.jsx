@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, TrendingUp, Users, CheckCircle, Star, Coins, Calendar, Plus } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, CheckCircle, Calendar, Plus } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import Button from '../components/Button';
 import { api } from '../config/api';
@@ -20,20 +20,27 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !userProfile) return;
     fetchDashboardData();
-  }, [user]);
+  }, [user, userProfile]);
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch all tasks
-      const allTasks = await api.get('/tasks');
+      // Fetch all tasks and projects
+      const [allTasks, allProjects] = await Promise.all([
+        api.get('/tasks'),
+        api.get('/projects')
+      ]);
       
-      // Filter user's tasks
-      const userTasks = allTasks.filter(task => task.assigned_to === user.id);
+      const isAdmin = userProfile?.role === 'admin';
+      
+      // Admin sees all tasks, regular user sees only their own
+      const relevantTasks = isAdmin 
+        ? allTasks 
+        : allTasks.filter(task => task.assigned_to === user.id);
       
       // Get recent 5 tasks
-      const recentUserTasks = userTasks.slice(0, 5);
+      const recentUserTasks = relevantTasks.slice(0, 5);
       
       // Convert MySQL fields to match UI expectations
       const formattedTasks = recentUserTasks.map(task => ({
@@ -45,12 +52,12 @@ function Dashboard() {
       
       setRecentTasks(formattedTasks);
       
-      // Calculate stats
+      // Calculate stats — admin sees all projects, user sees their own
       setStats({
-        totalTasks: userTasks.length,
-        completedTasks: userTasks.filter(t => t.status === 'done').length,
-        inProgressTasks: userTasks.filter(t => t.status === 'in-progress').length,
-        totalProjects: 0 // Can fetch from /projects if needed
+        totalTasks: relevantTasks.length,
+        completedTasks: relevantTasks.filter(t => t.status === 'done').length,
+        inProgressTasks: relevantTasks.filter(t => t.status === 'in-progress').length,
+        totalProjects: allProjects.length
       });
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
@@ -199,22 +206,13 @@ function Dashboard() {
                 <h4 className="font-bold text-gray-900 text-lg">{userProfile?.displayName}</h4>
                 <p className="text-sm text-gray-500 mb-4">{userProfile?.email}</p>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border border-yellow-200 group">
+                <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 group">
                     <div className="flex items-center justify-center space-x-1 mb-1">
-                      <Coins className="w-5 h-5 text-yellow-600" />
-                      <span className="font-extrabold text-xl text-gray-900">{userProfile?.rewardPoints || 0}</span>
+                      <CheckCircle className="w-5 h-5 text-blue-600" />
+                      <span className="font-extrabold text-xl text-gray-900">{userProfile?.tasksCompleted || 0}</span>
                     </div>
-                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Points</p>
+                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Tasks Done</p>
                   </div>
-                  <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-red-50 rounded-xl border border-orange-200 group">
-                    <div className="flex items-center justify-center space-x-1 mb-1">
-                      <Star className="w-5 h-5 text-orange-600" />
-                      <span className="font-extrabold text-xl text-gray-900">{userProfile?.rating || 0}/5</span>
-                    </div>
-                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Rating</p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -243,14 +241,6 @@ function Dashboard() {
               >
                 <Users className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                 View Projects
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start group hover:bg-orange-50 hover:border-orange-300 hover:text-orange-700 transition-all duration-300 transform hover:scale-[1.02]"
-                onClick={() => navigate('/rewards')}
-              >
-                <Star className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
-                View Rewards
               </Button>
             </div>
           </div>

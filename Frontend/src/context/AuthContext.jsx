@@ -31,9 +31,7 @@ export function AuthProvider({ children }) {
         uid: profile.id,
         displayName: profile.name,
         email: profile.email,
-        role: profile.role,  // Add role
-        rewardPoints: profile.rewardPoints,
-        rating: profile.rating,
+        role: profile.role,
         tasksCompleted: profile.tasksCompleted,
         projectsCompleted: profile.projectsCompleted,
         createdAt: profile.createdAt
@@ -55,8 +53,6 @@ export function AuthProvider({ children }) {
         displayName: data.user.name,
         email: data.user.email,
         role: data.user.role,
-        rewardPoints: 0,
-        rating: 0,
         tasksCompleted: 0
       });
       toast.success('Account created successfully!');
@@ -77,8 +73,6 @@ export function AuthProvider({ children }) {
         displayName: data.user.name,
         email: data.user.email,
         role: data.user.role,
-        rewardPoints: data.user.rewardPoints,
-        rating: data.user.rating,
         tasksCompleted: data.user.tasksCompleted
       });
       toast.success('Logged in successfully!');
@@ -96,10 +90,6 @@ export function AuthProvider({ children }) {
     toast.success('Logged out successfully!');
   }
 
-  async function updateUserRewards(points, taskCompleted = false) {
-    await fetchUserProfile();
-  }
-
   async function refreshUserProfile() {
     await fetchUserProfile();
   }
@@ -107,11 +97,10 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     userProfile,
-    isAdmin: userProfile?.role === 'admin',  // Helper
+    isAdmin: userProfile?.role === 'admin',
     signup,
     login,
     logout,
-    updateUserRewards,
     refreshUserProfile
   };
 

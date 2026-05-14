@@ -8,7 +8,7 @@ class AuthService {
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const [result] = await pool.execute(
-      'INSERT INTO users (name, email, role, password, reward_points, rating, tasks_completed, projects_completed) VALUES (?, ?, ?, ?, 0, 0, 0, 0)',
+      'INSERT INTO users (name, email, role, password, tasks_completed, projects_completed) VALUES (?, ?, ?, ?, 0, 0)',
       [name, email, 'user', hashedPassword]
     );
     
@@ -26,8 +26,6 @@ class AuthService {
         name,
         email,
         role: 'user',
-        rewardPoints: 0,
-        rating: 0,
         tasksCompleted: 0
       }
     };
@@ -63,8 +61,6 @@ class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
-        rewardPoints: user.reward_points,
-        rating: user.rating,
         tasksCompleted: user.tasks_completed
       }
     };
@@ -86,8 +82,6 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
-      rewardPoints: user.reward_points,
-      rating: user.rating,
       tasksCompleted: user.tasks_completed,
       projectsCompleted: user.projects_completed,
       createdAt: user.created_at
@@ -96,4 +90,3 @@ class AuthService {
 }
 
 module.exports = new AuthService();
-

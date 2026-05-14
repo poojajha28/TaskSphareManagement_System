@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Star, Coins, Target, Mail, User } from 'lucide-react';
+import { Target, Mail, User } from 'lucide-react';
 
 function UserCard({ user, showStats = true, onClick }) {
   return (
@@ -22,30 +22,12 @@ function UserCard({ user, showStats = true, onClick }) {
       </div>
 
       {showStats && (
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-1 mb-1">
-              <Coins className="w-4 h-4 text-yellow-500" />
-              <span className="font-bold text-lg">{user.rewardPoints || 0}</span>
-            </div>
-            <p className="text-xs text-gray-600">Points</p>
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-1 mb-1">
+            <Target className="w-4 h-4 text-blue-500" />
+            <span className="font-bold text-lg">{user.tasksCompleted || 0}</span>
           </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-1 mb-1">
-              <Star className="w-4 h-4 text-orange-500" />
-              <span className="font-bold text-lg">{user.rating || 0}/5</span>
-            </div>
-            <p className="text-xs text-gray-600">Rating</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-1 mb-1">
-              <Target className="w-4 h-4 text-blue-500" />
-              <span className="font-bold text-lg">{user.tasksCompleted || 0}</span>
-            </div>
-            <p className="text-xs text-gray-600">Tasks</p>
-          </div>
+          <p className="text-xs text-gray-600">Tasks Completed</p>
         </div>
       )}
 
