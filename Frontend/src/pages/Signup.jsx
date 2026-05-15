@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, Shield, User } from 'lucide-react';
 import Button from '../components/Button';
 
 function Signup() {
@@ -10,7 +10,8 @@ function Signup() {
     displayName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'user'
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -41,7 +42,7 @@ function Signup() {
 
     setLoading(true);
     try {
-      await signup(formData.email, formData.password, formData.displayName);
+      await signup(formData.email, formData.password, formData.displayName, formData.role);
       navigate('/');
     } catch (error) {
       // Error is handled in the auth context
@@ -120,6 +121,76 @@ function Signup() {
               </div>
             </div>
 
+            {/* Role Selection */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Select Role
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: 'user' })}
+                  className={`relative flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer ${
+                    formData.role === 'user'
+                      ? 'border-purple-500 bg-purple-50 shadow-lg shadow-purple-500/20'
+                      : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/50'
+                  }`}
+                >
+                  {formData.role === 'user' && (
+                    <div className="absolute top-2 right-2 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-all ${
+                    formData.role === 'user'
+                      ? 'bg-gradient-to-br from-purple-500 to-blue-500 shadow-md'
+                      : 'bg-gray-100'
+                  }`}>
+                    <User className={`w-6 h-6 ${formData.role === 'user' ? 'text-white' : 'text-gray-500'}`} />
+                  </div>
+                  <span className={`text-sm font-bold ${formData.role === 'user' ? 'text-purple-700' : 'text-gray-600'}`}>
+                    Member
+                  </span>
+                  <span className={`text-xs mt-1 text-center ${formData.role === 'user' ? 'text-purple-500' : 'text-gray-400'}`}>
+                    View & update assigned tasks
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: 'admin' })}
+                  className={`relative flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer ${
+                    formData.role === 'admin'
+                      ? 'border-red-500 bg-red-50 shadow-lg shadow-red-500/20'
+                      : 'border-gray-200 bg-white hover:border-red-300 hover:bg-red-50/50'
+                  }`}
+                >
+                  {formData.role === 'admin' && (
+                    <div className="absolute top-2 right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-all ${
+                    formData.role === 'admin'
+                      ? 'bg-gradient-to-br from-red-500 to-pink-500 shadow-md'
+                      : 'bg-gray-100'
+                  }`}>
+                    <Shield className={`w-6 h-6 ${formData.role === 'admin' ? 'text-white' : 'text-gray-500'}`} />
+                  </div>
+                  <span className={`text-sm font-bold ${formData.role === 'admin' ? 'text-red-700' : 'text-gray-600'}`}>
+                    Admin
+                  </span>
+                  <span className={`text-xs mt-1 text-center ${formData.role === 'admin' ? 'text-red-500' : 'text-gray-400'}`}>
+                    Manage tasks & users
+                  </span>
+                </button>
+              </div>
+            </div>
+
             <div>
               <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
@@ -183,7 +254,9 @@ function Signup() {
                 ) : (
                   <>
                     <UserPlus className="w-5 h-5" />
-                    <span className="font-semibold">Create account</span>
+                    <span className="font-semibold">
+                      Create {formData.role === 'admin' ? 'Admin' : 'Member'} account
+                    </span>
                   </>
                 )}
               </Button>

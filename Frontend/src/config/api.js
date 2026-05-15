@@ -31,6 +31,24 @@ export const api = {
   getOverdueTasks() {
     return this.get('/tasks/overdue');
   },
+
+  // Dashboard stats
+  getDashboardStats() {
+    return this.get('/tasks/dashboard-stats');
+  },
+
+  // Project members
+  getProjectMembers(projectId) {
+    return this.get(`/projects/${projectId}/members`);
+  },
+
+  addProjectMember(projectId, userId) {
+    return this.post(`/projects/${projectId}/members`, { userId });
+  },
+
+  removeProjectMember(projectId, userId) {
+    return this.delete(`/projects/${projectId}/members/${userId}`);
+  },
   
   post(endpoint, body) {
     return this.request(endpoint, {

@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Calendar, Users, CheckCircle, Clock } from 'lucide-react';
-import Projects from '../pages/Projects';
+import { Calendar, Users, CheckCircle, Clock, Shield } from 'lucide-react';
 
 const statusColors = {
   'planning': 'bg-gray-100 text-gray-800',
@@ -10,17 +9,27 @@ const statusColors = {
   'completed': 'bg-green-100 text-green-800'
 };
 
-function ProjectCard({ project, onClick }) {
-  const completionPercentage = project.totalTasks
+function ProjectCard({ project, onClick, isCreator, isAdmin }) {
+  const completionPercentage = project.totalTasks > 0 
+    ? Math.round((project.completedTasks / project.totalTasks) * 100) 
+    : 0;
 
   return (
     <div 
-      className="bg-white rounded-lg shadow-md border hover:shadow-lg transition-shadow cursor-pointer"
+      className="bg-white rounded-lg shadow-md border hover:shadow-lg transition-shadow cursor-pointer group"
       onClick={() => onClick && onClick(project)}
     >
       <div className="p-6">
         <div className="flex justify-between items-start mb-4">
-          <h3 className="font-semibold text-gray-900 text-lg line-clamp-2">{project.name}</h3>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-lg line-clamp-2">{project.name}</h3>
+            {isCreator && (
+              <span className="inline-flex items-center space-x-1 mt-1 bg-red-50 text-red-600 px-2 py-0.5 rounded-full text-xs font-bold">
+                <Shield className="w-3 h-3" />
+                <span>Admin</span>
+              </span>
+            )}
+          </div>
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[project.status]}`}>
             {project.status.replace('-', ' ')}
           </span>
@@ -45,7 +54,7 @@ function ProjectCard({ project, onClick }) {
         <div className="space-y-2">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <CheckCircle className="w-4 h-4" />
-            <span>{project.totalTasks} tasks</span>
+            <span>{project.completedTasks || 0}/{project.totalTasks} tasks</span>
           </div>
 
           {project.dueDate && (
@@ -63,28 +72,13 @@ function ProjectCard({ project, onClick }) {
           )}
         </div>
 
-        {/* Team Members Avatars */}
-        {project.teamMembers && project.teamMembers.length > 0 && (
-          <div className="flex items-center space-x-2 mt-4">
-            <span className="text-xs text-gray-500">Team:</span>
-            <div className="flex -space-x-2">
-              {project.teamMembers.slice(0, 4).map((member, index) => (
-                <div 
-                  key={index}
-                  className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs border-2 border-white"
-                  title={member.name}
-                >
-                  {member.name?.charAt(0)?.toUpperCase() || 'U'}
-                </div>
-              ))}
-              {project.teamMembers.length > 4 && (
-                <div className="w-6 h-6 bg-gray-500 rounded-full flex items-center justify-center text-white text-xs border-2 border-white">
-                  +{project.teamMembers.length - 4}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Click hint */}
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          <p className="text-xs text-gray-400 group-hover:text-blue-500 transition-colors flex items-center space-x-1">
+            <Users className="w-3 h-3" />
+            <span>Click to manage members</span>
+          </p>
+        </div>
       </div>
     </div>
   );

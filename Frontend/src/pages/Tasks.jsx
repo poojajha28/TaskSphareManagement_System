@@ -11,12 +11,11 @@ import toast from 'react-hot-toast';
 const statusColumns = [
   { id: 'todo', title: 'To Do', color: 'bg-gray-100' },
   { id: 'in-progress', title: 'In Progress', color: 'bg-blue-100' },
-  { id: 'review', title: 'Review', color: 'bg-purple-100' },
   { id: 'done', title: 'Done', color: 'bg-green-100' }
 ];
 
 function Tasks() {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, isAdmin } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +55,7 @@ function Tasks() {
       toast.success('Task created successfully!');
       fetchTasks();
     } catch (error) {
-      toast.error('Failed to create task');
+      toast.error(error.message || 'Failed to create task');
     }
   };
 
@@ -70,9 +69,8 @@ function Tasks() {
   };
 
   const filteredTasks = tasks.filter(task => {
-    // Admin sees all, users see only their assigned tasks
     const matchesFilter = filter === 'all'
-      ? (userProfile?.role === 'admin' || task.assigned_to === user?.id)
+      ? true
       : filter === 'my-tasks'
         ? task.assigned_to === user?.id
         : filter === 'created-by-me'
@@ -104,22 +102,24 @@ function Tasks() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
           <p className="text-gray-600 mt-1">
-            {userProfile?.role === 'admin' ? 'Manage all tasks' : 'Manage and track your tasks'}
+            {isAdmin ? 'Manage all tasks' : 'View and update your assigned tasks'}
           </p>
         </div>
-        <Button
-          onClick={() => {
-            if (!projects || projects.length === 0) {
-              toast.error('Please create a project first');
-              return;
-            }
-            setShowCreateModal(true);
-          }}
-          className="flex items-center space-x-2"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Create Task</span>
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => {
+              if (!projects || projects.length === 0) {
+                toast.error('Please create a project first');
+                return;
+              }
+              setShowCreateModal(true);
+            }}
+            className="flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Create Task</span>
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -131,9 +131,9 @@ function Tasks() {
             onChange={(e) => setFilter(e.target.value)}
             className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">{userProfile?.role === 'admin' ? 'All Tasks' : 'My Tasks'}</option>
-            <option value="my-tasks">Assigned to Me</option>
-            {userProfile?.role === 'admin' && <option value="created-by-me">Created by Me</option>}
+            <option value="all">{isAdmin ? 'All Tasks' : 'My Tasks'}</option>
+            {isAdmin && <option value="my-tasks">Assigned to Me</option>}
+            {isAdmin && <option value="created-by-me">Created by Me</option>}
           </select>
         </div>
 
@@ -150,7 +150,7 @@ function Tasks() {
       </div>
 
       {/* Kanban Board */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {statusColumns.map(column => (
           <div key={column.id} className="bg-gray-50 rounded-lg p-4">
             <div className={`${column.color} rounded-lg p-3 mb-4`}>
@@ -165,9 +165,7 @@ function Tasks() {
                 <TaskCard
                   key={task.id}
                   task={task}
-                  onTaskUpdate={(updatedTask) => {
-                    setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
-                  }}
+                  onTaskUpdate={fetchTasks}
                 />
               ))}
 

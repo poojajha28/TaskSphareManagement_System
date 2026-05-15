@@ -8,6 +8,7 @@ const { authenticateToken } = require('../middleware/auth');
 router.use(authenticateToken);
 
 router.get('/overdue', taskController.getOverdueTasks);
+router.get('/dashboard-stats', taskController.getDashboardStats);
 
 router.get('/', taskController.getAllTasks);
 router.post('/', taskController.createTask);

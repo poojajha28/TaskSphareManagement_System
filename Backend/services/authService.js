@@ -4,17 +4,20 @@ const jwt = require('jsonwebtoken');
 const pool = require('../config/database');
 
 class AuthService {
-  async signup(name, email, password) {
+  async signup(name, email, password, role = 'user') {
+    // Validate role - only allow 'user' or 'admin'
+    const validRole = (role === 'admin') ? 'admin' : 'user';
+    
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const [result] = await pool.execute(
       'INSERT INTO users (name, email, role, password, tasks_completed, projects_completed) VALUES (?, ?, ?, ?, 0, 0)',
-      [name, email, 'user', hashedPassword]
+      [name, email, validRole, hashedPassword]
     );
     
     const userId = result.insertId;
     const token = jwt.sign(
-      { id: userId, email, role: 'user' },
+      { id: userId, email, role: validRole },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
@@ -25,7 +28,7 @@ class AuthService {
         id: userId,
         name,
         email,
-        role: 'user',
+        role: validRole,
         tasksCompleted: 0
       }
     };

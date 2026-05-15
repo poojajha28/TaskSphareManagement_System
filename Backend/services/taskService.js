@@ -13,6 +13,19 @@ class TaskService {
     return tasks;
   }
 
+  async getTasksByUser(userId) {
+    const [tasks] = await pool.execute(
+      `SELECT t.*, u.name as assigned_to_name, p.id as project_id, p.name as project_name
+       FROM tasks t
+       LEFT JOIN users u ON t.assigned_to = u.id
+       LEFT JOIN projects p ON t.project_id = p.id
+       WHERE t.assigned_to = ?
+       ORDER BY t.created_at DESC`,
+      [userId]
+    );
+    return tasks;
+  }
+
   async getOverdueTasksForUser(userId) {
     const [tasks] = await pool.execute(
       `SELECT t.*, u.name as assigned_to_name, p.id as project_id, p.name as project_name
@@ -24,6 +37,70 @@ class TaskService {
       [userId]
     );
     return tasks;
+  }
+
+  async getAllOverdueTasks() {
+    const [tasks] = await pool.execute(
+      `SELECT t.*, u.name as assigned_to_name, p.id as project_id, p.name as project_name
+       FROM tasks t
+       LEFT JOIN users u ON t.assigned_to = u.id
+       LEFT JOIN projects p ON t.project_id = p.id
+       WHERE t.status <> 'done' AND t.due_date IS NOT NULL AND t.due_date < NOW()
+       ORDER BY t.due_date ASC`
+    );
+    return tasks;
+  }
+
+  async getDashboardStats(userId, role) {
+    const isAdmin = role === 'admin';
+
+    // Total tasks
+    let totalQuery, statusQuery, perUserQuery, overdueQuery;
+
+    if (isAdmin) {
+      [totalQuery] = await pool.execute('SELECT COUNT(*) as total FROM tasks');
+      [statusQuery] = await pool.execute(
+        `SELECT status, COUNT(*) as count FROM tasks GROUP BY status`
+      );
+      [perUserQuery] = await pool.execute(
+        `SELECT u.id, u.name, COUNT(t.id) as task_count,
+                SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) as completed_count
+         FROM users u
+         LEFT JOIN tasks t ON t.assigned_to = u.id
+         GROUP BY u.id, u.name
+         ORDER BY task_count DESC`
+      );
+      [overdueQuery] = await pool.execute(
+        `SELECT COUNT(*) as overdue FROM tasks 
+         WHERE status <> 'done' AND due_date IS NOT NULL AND due_date < NOW()`
+      );
+    } else {
+      [totalQuery] = await pool.execute(
+        'SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ?', [userId]
+      );
+      [statusQuery] = await pool.execute(
+        `SELECT status, COUNT(*) as count FROM tasks WHERE assigned_to = ? GROUP BY status`, [userId]
+      );
+      perUserQuery = [];
+      [overdueQuery] = await pool.execute(
+        `SELECT COUNT(*) as overdue FROM tasks 
+         WHERE assigned_to = ? AND status <> 'done' AND due_date IS NOT NULL AND due_date < NOW()`, [userId]
+      );
+    }
+
+    const statusMap = {};
+    (statusQuery || []).forEach(row => {
+      statusMap[row.status] = row.count;
+    });
+
+    return {
+      totalTasks: totalQuery[0]?.total || 0,
+      todoTasks: statusMap['todo'] || 0,
+      inProgressTasks: statusMap['in-progress'] || 0,
+      doneTasks: statusMap['done'] || 0,
+      overdueTasks: overdueQuery[0]?.overdue || 0,
+      tasksPerUser: perUserQuery || []
+    };
   }
 
   async createTask(taskData, createdBy) {
@@ -50,7 +127,7 @@ class TaskService {
     return { id: result.insertId };
   }
 
-  async updateTaskStatus(taskId, status) {
+  async updateTaskStatus(taskId, status, userId, userRole) {
     const [tasks] = await pool.execute(
       'SELECT * FROM tasks WHERE id = ?',
       [taskId]
@@ -61,10 +138,19 @@ class TaskService {
     }
     
     const task = tasks[0];
+
+    // No change — skip
+    if (task.status === status) {
+      return { message: 'No status change' };
+    }
+
+    // Role-based check: members can only update their own assigned tasks
+    if (userRole !== 'admin' && task.assigned_to !== userId) {
+      throw new Error('You can only update tasks assigned to you');
+    }
     
-    // If task is being marked as done
+    // CASE 1: Moving TO "done" from another status → INCREMENT counters
     if (status === 'done' && task.status !== 'done') {
-      // Update tasks_completed count for the assigned user
       if (task.assigned_to) {
         await pool.execute(
           'UPDATE users SET tasks_completed = tasks_completed + 1 WHERE id = ?',
@@ -77,18 +163,36 @@ class TaskService {
         [status, taskId]
       );
 
-      // If task belongs to a project, increment that project's completed_tasks counter
       if (task.project_id) {
-        try {
-          await pool.execute(
-            'UPDATE projects SET completed_tasks = COALESCE(completed_tasks,0) + 1, updated_at = NOW() WHERE id = ?',
-            [task.project_id]
-          );
-        } catch (err) {
-          console.error('Failed to update project completed_tasks:', err.message || err);
-        }
+        await pool.execute(
+          'UPDATE projects SET completed_tasks = COALESCE(completed_tasks,0) + 1, updated_at = NOW() WHERE id = ?',
+          [task.project_id]
+        );
       }
-    } else {
+    }
+    // CASE 2: Moving FROM "done" back to another status → DECREMENT counters
+    else if (task.status === 'done' && status !== 'done') {
+      if (task.assigned_to) {
+        await pool.execute(
+          'UPDATE users SET tasks_completed = GREATEST(tasks_completed - 1, 0) WHERE id = ?',
+          [task.assigned_to]
+        );
+      }
+      
+      await pool.execute(
+        'UPDATE tasks SET status = ?, completed_at = NULL, updated_at = NOW() WHERE id = ?',
+        [status, taskId]
+      );
+
+      if (task.project_id) {
+        await pool.execute(
+          'UPDATE projects SET completed_tasks = GREATEST(COALESCE(completed_tasks,0) - 1, 0), updated_at = NOW() WHERE id = ?',
+          [task.project_id]
+        );
+      }
+    }
+    // CASE 3: Moving between non-done statuses (todo ↔ in-progress) → just update status
+    else {
       await pool.execute(
         'UPDATE tasks SET status = ?, updated_at = NOW() WHERE id = ?',
         [status, taskId]

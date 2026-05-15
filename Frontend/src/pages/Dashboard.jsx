@@ -2,21 +2,24 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, TrendingUp, Users, CheckCircle, Calendar, Plus } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, CheckCircle, Calendar, Plus, AlertTriangle, ListTodo, UserCheck } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import Button from '../components/Button';
 import { api } from '../config/api';
 
 function Dashboard() {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalTasks: 0,
-    completedTasks: 0,
+    todoTasks: 0,
     inProgressTasks: 0,
-    totalProjects: 0
+    doneTasks: 0,
+    overdueTasks: 0,
+    tasksPerUser: []
   });
   const [recentTasks, setRecentTasks] = useState([]);
+  const [overdueTasks, setOverdueTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,39 +29,27 @@ function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch all tasks and projects
-      const [allTasks, allProjects] = await Promise.all([
+      const [dashboardStats, allTasks, overdueData] = await Promise.all([
+        api.getDashboardStats(),
         api.get('/tasks'),
-        api.get('/projects')
+        api.getOverdueTasks()
       ]);
-      
-      const isAdmin = userProfile?.role === 'admin';
-      
-      // Admin sees all tasks, regular user sees only their own
-      const relevantTasks = isAdmin 
-        ? allTasks 
-        : allTasks.filter(task => task.assigned_to === user.id);
-      
+
+      setStats(dashboardStats);
+
       // Get recent 5 tasks
-      const recentUserTasks = relevantTasks.slice(0, 5);
-      
-      // Convert MySQL fields to match UI expectations
+      const recentUserTasks = allTasks.slice(0, 5);
       const formattedTasks = recentUserTasks.map(task => ({
         ...task,
         due_date: task.due_date,
         estimated_hours: task.estimated_hours,
         assigned_to_name: task.assigned_to_name
       }));
-      
       setRecentTasks(formattedTasks);
-      
-      // Calculate stats — admin sees all projects, user sees their own
-      setStats({
-        totalTasks: relevantTasks.length,
-        completedTasks: relevantTasks.filter(t => t.status === 'done').length,
-        inProgressTasks: relevantTasks.filter(t => t.status === 'in-progress').length,
-        totalProjects: allProjects.length
-      });
+
+      // Set overdue tasks
+      const overdueArr = Array.isArray(overdueData) ? overdueData : [];
+      setOverdueTasks(overdueArr.slice(0, 5));
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
     } finally {
@@ -90,7 +81,8 @@ function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        {/* Total Tasks */}
         <div className="group bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg shadow-blue-500/10 p-6 border border-blue-100 hover:shadow-xl hover:shadow-blue-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Tasks</p>
@@ -104,19 +96,21 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="group bg-gradient-to-br from-white to-green-50 rounded-2xl shadow-lg shadow-green-500/10 p-6 border border-green-100 hover:shadow-xl hover:shadow-green-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
+        {/* To Do */}
+        <div className="group bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-lg shadow-slate-500/10 p-6 border border-slate-100 hover:shadow-xl hover:shadow-slate-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Completed</p>
-            <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
-              <CheckCircle className="w-6 h-6 text-white" />
+            <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">To Do</p>
+            <div className="w-12 h-12 bg-gradient-to-br from-slate-400 to-slate-600 rounded-xl flex items-center justify-center shadow-lg shadow-slate-500/30 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
+              <ListTodo className="w-6 h-6 text-white" />
             </div>
           </div>
-          <p className="text-4xl font-extrabold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">{stats.completedTasks}</p>
-          <div className="mt-3 h-1 bg-green-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.completedTasks / stats.totalTasks) * 100 : 0}%` }}></div>
+          <p className="text-4xl font-extrabold bg-gradient-to-r from-slate-600 to-slate-800 bg-clip-text text-transparent">{stats.todoTasks}</p>
+          <div className="mt-3 h-1 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-slate-400 to-slate-600 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.todoTasks / stats.totalTasks) * 100 : 0}%` }}></div>
           </div>
         </div>
 
+        {/* In Progress */}
         <div className="group bg-gradient-to-br from-white to-yellow-50 rounded-2xl shadow-lg shadow-yellow-500/10 p-6 border border-yellow-100 hover:shadow-xl hover:shadow-yellow-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">In Progress</p>
@@ -130,16 +124,31 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="group bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-lg shadow-purple-500/10 p-6 border border-purple-100 hover:shadow-xl hover:shadow-purple-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
+        {/* Completed */}
+        <div className="group bg-gradient-to-br from-white to-green-50 rounded-2xl shadow-lg shadow-green-500/10 p-6 border border-green-100 hover:shadow-xl hover:shadow-green-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Projects</p>
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
-              <Users className="w-6 h-6 text-white" />
+            <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Done</p>
+            <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
+              <CheckCircle className="w-6 h-6 text-white" />
             </div>
           </div>
-          <p className="text-4xl font-extrabold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">{stats.totalProjects}</p>
-          <div className="mt-3 h-1 bg-purple-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full w-full"></div>
+          <p className="text-4xl font-extrabold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">{stats.doneTasks}</p>
+          <div className="mt-3 h-1 bg-green-100 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.doneTasks / stats.totalTasks) * 100 : 0}%` }}></div>
+          </div>
+        </div>
+
+        {/* Overdue */}
+        <div className="group bg-gradient-to-br from-white to-red-50 rounded-2xl shadow-lg shadow-red-500/10 p-6 border border-red-100 hover:shadow-xl hover:shadow-red-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Overdue</p>
+            <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/30 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
+              <AlertTriangle className="w-6 h-6 text-white" />
+            </div>
+          </div>
+          <p className="text-4xl font-extrabold bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">{stats.overdueTasks}</p>
+          <div className="mt-3 h-1 bg-red-100 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.overdueTasks / stats.totalTasks) * 100 : 0}%` }}></div>
           </div>
         </div>
       </div>
@@ -147,20 +156,22 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Tasks */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 mb-8">
             <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100 flex justify-between items-center">
               <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
                 <span>📋</span>
                 <span>Recent Tasks</span>
               </h3>
-              <Button 
-                size="sm" 
-                className="flex items-center space-x-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transform hover:scale-105 transition-all"
-                onClick={() => navigate('/tasks')}
-              >
-                <Plus className="w-4 h-4" />
-                <span>New Task</span>
-              </Button>
+              {isAdmin && (
+                <Button 
+                  size="sm" 
+                  className="flex items-center space-x-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transform hover:scale-105 transition-all"
+                  onClick={() => navigate('/tasks')}
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>New Task</span>
+                </Button>
+              )}
             </div>
             <div className="p-6">
               {recentTasks.length > 0 ? (
@@ -178,17 +189,43 @@ function Dashboard() {
                     <Calendar className="w-24 h-24 text-blue-400 relative" />
                   </div>
                   <h4 className="text-xl font-bold text-gray-900 mb-2">No tasks yet</h4>
-                  <p className="text-gray-600 mb-6">Create your first task to get started on your journey!</p>
-                  <Button onClick={() => navigate('/tasks')} className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transform hover:scale-105 transition-all">
-                    Create Task
-                  </Button>
+                  <p className="text-gray-600 mb-6">
+                    {isAdmin ? 'Create your first task to get started!' : 'No tasks assigned to you yet.'}
+                  </p>
+                  {isAdmin && (
+                    <Button onClick={() => navigate('/tasks')} className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transform hover:scale-105 transition-all">
+                      Create Task
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
           </div>
+
+          {/* Overdue Tasks Section */}
+          {overdueTasks.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-red-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+              <div className="px-6 py-4 bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-red-700 flex items-center space-x-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span>Overdue Tasks</span>
+                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{overdueTasks.length}</span>
+                </h3>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  {overdueTasks.map((task, index) => (
+                    <div key={task.id} style={{ animationDelay: `${index * 100}ms` }} className="animate-fadeIn">
+                      <TaskCard task={task} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* User Profile & Quick Stats */}
+        {/* Right Sidebar */}
         <div className="space-y-6">
           {/* Profile Card */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 group">
@@ -204,7 +241,12 @@ function Dashboard() {
                   </div>
                 </div>
                 <h4 className="font-bold text-gray-900 text-lg">{userProfile?.displayName}</h4>
-                <p className="text-sm text-gray-500 mb-4">{userProfile?.email}</p>
+                <p className="text-sm text-gray-500 mb-2">{userProfile?.email}</p>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-4 ${
+                  isAdmin ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                }`}>
+                  {isAdmin ? '🛡️ Admin' : '👤 Member'}
+                </span>
                 
                 <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 group">
                     <div className="flex items-center justify-center space-x-1 mb-1">
@@ -217,6 +259,34 @@ function Dashboard() {
             </div>
           </div>
 
+          {/* Tasks Per User (Admin Only) */}
+          {isAdmin && stats.tasksPerUser && stats.tasksPerUser.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+              <div className="px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-100">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                  <UserCheck className="w-5 h-5 text-indigo-600" />
+                  <span>Tasks Per User</span>
+                </h3>
+              </div>
+              <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
+                {stats.tasksPerUser.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-indigo-50 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">{u.name?.charAt(0)?.toUpperCase() || 'U'}</span>
+                      </div>
+                      <span className="text-sm font-medium text-gray-800 truncate max-w-[120px]">{u.name}</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-xs">
+                      <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-bold">{u.task_count} total</span>
+                      <span className="bg-green-100 text-green-700 px-2 py-1 rounded-lg font-bold">{u.completed_count} done</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Quick Actions */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
             <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
@@ -226,14 +296,16 @@ function Dashboard() {
               </h3>
             </div>
             <div className="p-6 space-y-3">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start group hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-300 transform hover:scale-[1.02]"
-                onClick={() => navigate('/tasks')}
-              >
-                <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
-                Create New Task
-              </Button>
+              {isAdmin && (
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start group hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-300 transform hover:scale-[1.02]"
+                  onClick={() => navigate('/tasks')}
+                >
+                  <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
+                  Create New Task
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 className="w-full justify-start group hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-all duration-300 transform hover:scale-[1.02]"

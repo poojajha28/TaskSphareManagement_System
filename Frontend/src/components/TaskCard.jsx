@@ -14,71 +14,52 @@ const priorityColors = {
 const statusColors = {
   'todo': 'bg-gray-100 text-gray-800',
   'in-progress': 'bg-blue-100 text-blue-800',
-  'review': 'bg-purple-100 text-purple-800',
   'done': 'bg-green-100 text-green-800'
 };
 
 function TaskCard({ task, onTaskUpdate }) {
-  const { user, refreshUserProfile } = useAuth();
+  const { user, refreshUserProfile, isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [overdueInfo, setOverdueInfo] = useState({ isOverdueApi: false, daysOverdue: 0 });
-  const [loadingOverdue, setLoadingOverdue] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
-    async function fetchOverdue() {
-      if (!task?.id) return;
-      setLoadingOverdue(true);
-      try {
-        const res = await api.getOverdueTasks();
-        const tasks = Array.isArray(res) ? res : (res && res.data) || [];
-        const found = (tasks || []).find((t) => String(t.id) === String(task.id));
-        if (!mounted) return;
-        if (found) {
-          const days = Math.max(1, Math.floor((Date.now() - Date.parse(found.due_date)) / (1000 * 60 * 60 * 24)));
-          setOverdueInfo({ isOverdueApi: true, daysOverdue: days });
-        } else {
-          setOverdueInfo({ isOverdueApi: false, daysOverdue: 0 });
-        }
-      } catch (err) {
-        if (mounted) setOverdueInfo({ isOverdueApi: false, daysOverdue: 0 });
-      } finally {
-        if (mounted) setLoadingOverdue(false);
-      }
-    }
+  // Determine overdue locally
+  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
+  const daysOverdue = isOverdue ? Math.max(1, Math.floor((Date.now() - Date.parse(task.due_date)) / (1000 * 60 * 60 * 24))) : 0;
 
-    fetchOverdue();
-    return () => { mounted = false; };
-  }, [task.id, task.due_date, task.status]);
+  // Members can only update their own assigned tasks; admin can update any
+  const canUpdate = isAdmin || task.assigned_to === user?.id;
+  const canComplete = canUpdate && task.status !== 'done';
 
   const handleStatusChange = async (newStatus) => {
-    if (loading) return;
+    if (loading || !canUpdate) return;
+    if (newStatus === task.status) return; // No change
 
     setLoading(true);
     try {
       await api.patch(`/tasks/${task.id}`, { status: newStatus });
 
-      if (newStatus === 'done' && task.status !== 'done') {
-        toast.success('Task completed!');
-        await refreshUserProfile();
+      if (newStatus === 'done') {
+        toast.success('Task completed! 🎉');
+      } else if (task.status === 'done') {
+        toast.success('Task reopened');
       } else {
         toast.success('Task status updated!');
       }
 
+      // Refresh user profile if status change involves 'done' (counter changed)
+      if (newStatus === 'done' || task.status === 'done') {
+        await refreshUserProfile();
+      }
+
+      // Trigger full data refetch from parent
       if (onTaskUpdate) {
-        onTaskUpdate({ ...task, status: newStatus });
+        onTaskUpdate();
       }
     } catch (error) {
-      toast.error('Failed to update task');
+      toast.error(error.message || 'Failed to update task');
     } finally {
       setLoading(false);
     }
   };
-
-  // Convert MySQL date field for checking and prefer API result when available
-  const localIsOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
-  const isOverdue = overdueInfo.isOverdueApi || localIsOverdue;
-  const canComplete = task.assigned_to === user?.id && task.status !== 'done';
 
   return (
     <div className={`bg-white rounded-lg shadow-md border-l-4 p-4 hover:shadow-lg transition-shadow ${isOverdue ? 'border-l-red-500' : 'border-l-blue-500'
@@ -89,8 +70,8 @@ function TaskCard({ task, onTaskUpdate }) {
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
             {task.priority}
           </span>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[task.status]}`}>
-            {task.status.replace('-', ' ')}
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[task.status] || 'bg-gray-100 text-gray-800'}`}>
+            {task.status === 'in-progress' ? 'In Progress' : task.status === 'todo' ? 'To Do' : 'Done'}
           </span>
         </div>
       </div>
@@ -111,13 +92,11 @@ function TaskCard({ task, onTaskUpdate }) {
             <span>{new Date(task.due_date).toLocaleDateString()}</span>
             {isOverdue && (
               <span className="text-red-500 font-medium">
-                {`(Overdue${overdueInfo.daysOverdue ? ` · ${overdueInfo.daysOverdue}d` : ''})`}
+                {`(Overdue · ${daysOverdue}d)`}
               </span>
             )}
           </div>
         )}
-
-
 
         {task.estimated_hours && (
           <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -128,17 +107,22 @@ function TaskCard({ task, onTaskUpdate }) {
       </div>
 
       <div className="flex justify-between items-center">
-        <select
-          value={task.status}
-          onChange={(e) => handleStatusChange(e.target.value)}
-          disabled={loading}
-          className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="todo">To Do</option>
-          <option value="in-progress">In Progress</option>
-          <option value="review">Review</option>
-          <option value="done">Done</option>
-        </select>
+        {canUpdate ? (
+          <select
+            value={task.status}
+            onChange={(e) => handleStatusChange(e.target.value)}
+            disabled={loading}
+            className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="todo">To Do</option>
+            <option value="in-progress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+        ) : (
+          <span className={`text-sm px-2 py-1 rounded-md ${statusColors[task.status] || 'bg-gray-100 text-gray-800'}`}>
+            {task.status === 'in-progress' ? 'In Progress' : task.status === 'todo' ? 'To Do' : 'Done'}
+          </span>
+        )}
 
         {canComplete && task.status !== 'done' && (
           <button

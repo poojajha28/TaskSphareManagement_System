@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Filter, Search, Users } from 'lucide-react';
+import { Plus, Filter, Search, Users, UserPlus, UserMinus, X, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import ProjectCard from '../components/ProjectCard';
 import Modal from '../components/Modal';
@@ -9,10 +9,11 @@ import toast from 'react-hot-toast';
 import { api } from '../config/api';
 
 function Projects() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(null); // project object or null
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -60,7 +61,6 @@ function Projects() {
 
   const filteredProjects = projects.filter(project => {
     const matchesFilter = filter === 'all' || 
-      (filter === 'my-projects' && project.teamMembers?.some(member => member.uid === user?.id)) ||
       (filter === 'created-by-me' && project.createdBy === user?.id);
     
     const matchesSearch = project.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -83,7 +83,9 @@ function Projects() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-          <p className="text-gray-600 mt-1">Manage your team projects and collaborations</p>
+          <p className="text-gray-600 mt-1">
+            {isAdmin ? 'Manage your team projects and collaborations' : 'View your assigned projects'}
+          </p>
         </div>
         <Button
           onClick={() => setShowCreateModal(true)}
@@ -104,7 +106,6 @@ function Projects() {
             className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Projects</option>
-            <option value="my-projects">My Projects</option>
             <option value="created-by-me">Created by Me</option>
           </select>
         </div>
@@ -127,9 +128,12 @@ function Projects() {
           <ProjectCard
             key={project.id}
             project={project}
-            onClick={(project) => {
-              // Handle project click - could navigate to project details
+            onClick={() => {
+              // Open members modal
+              setShowMembersModal(project);
             }}
+            isCreator={project.createdBy === user?.id}
+            isAdmin={isAdmin}
           />
         ))}
       </div>
@@ -158,7 +162,172 @@ function Projects() {
           onSubmit={handleCreateProject}
         />
       )}
+
+      {/* Members Management Modal */}
+      {showMembersModal && (
+        <MembersModal
+          project={showMembersModal}
+          onClose={() => setShowMembersModal(null)}
+          isCreator={showMembersModal.createdBy === user?.id}
+          isAdmin={isAdmin}
+        />
+      )}
     </div>
+  );
+}
+
+function MembersModal({ project, onClose, isCreator, isAdmin }) {
+  const [members, setMembers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddUser, setShowAddUser] = useState(false);
+
+  const canManageMembers = isCreator || isAdmin;
+
+  useEffect(() => {
+    fetchMembers();
+    if (canManageMembers) {
+      fetchAllUsers();
+    }
+  }, []);
+
+  const fetchMembers = async () => {
+    try {
+      const data = await api.getProjectMembers(project.id);
+      setMembers(data);
+    } catch (error) {
+      toast.error('Failed to load members');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAllUsers = async () => {
+    try {
+      const users = await api.get('/users');
+      setAllUsers(users);
+    } catch (err) {
+      // silent
+    }
+  };
+
+  const handleAddMember = async (userId) => {
+    try {
+      await api.addProjectMember(project.id, userId);
+      toast.success('Member added!');
+      fetchMembers();
+      setShowAddUser(false);
+    } catch (error) {
+      toast.error(error.message || 'Failed to add member');
+    }
+  };
+
+  const handleRemoveMember = async (userId) => {
+    try {
+      await api.removeProjectMember(project.id, userId);
+      toast.success('Member removed!');
+      fetchMembers();
+    } catch (error) {
+      toast.error(error.message || 'Failed to remove member');
+    }
+  };
+
+  const memberIds = members.map(m => m.id);
+  const nonMembers = allUsers.filter(u => !memberIds.includes(u.id));
+
+  return (
+    <Modal onClose={onClose} title={`${project.name} — Members`} size="lg">
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Add Member button */}
+          {canManageMembers && (
+            <div className="flex justify-end">
+              <Button
+                size="sm"
+                onClick={() => setShowAddUser(!showAddUser)}
+                className="flex items-center space-x-1"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Add Member</span>
+              </Button>
+            </div>
+          )}
+
+          {/* Add User Selector */}
+          {showAddUser && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3 animate-fadeIn">
+              <h4 className="font-semibold text-gray-800 text-sm">Select user to add:</h4>
+              {nonMembers.length === 0 ? (
+                <p className="text-sm text-gray-500">All users are already members of this project.</p>
+              ) : (
+                <div className="max-h-48 overflow-y-auto space-y-2">
+                  {nonMembers.map(u => (
+                    <div key={u.id} className="flex items-center justify-between p-2 bg-white rounded-lg hover:bg-blue-50 transition-colors">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-xs">{u.name?.charAt(0)?.toUpperCase() || 'U'}</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">{u.name}</p>
+                          <p className="text-xs text-gray-500">{u.email}</p>
+                        </div>
+                      </div>
+                      <Button size="sm" onClick={() => handleAddMember(u.id)}>Add</Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Current Members */}
+          <div className="space-y-2">
+            {members.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No members yet.</p>
+            ) : (
+              members.map(member => (
+                <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      member.project_role === 'admin' 
+                        ? 'bg-gradient-to-br from-red-400 to-pink-500' 
+                        : 'bg-gradient-to-br from-blue-400 to-purple-500'
+                    }`}>
+                      <span className="text-white font-bold text-sm">{member.name?.charAt(0)?.toUpperCase() || 'U'}</span>
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm font-medium text-gray-800">{member.name}</p>
+                        {member.project_role === 'admin' && (
+                          <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold flex items-center space-x-1">
+                            <Shield className="w-3 h-3" />
+                            <span>Creator</span>
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500">{member.email}</p>
+                    </div>
+                  </div>
+                  {canManageMembers && member.project_role !== 'admin' && (
+                    <button
+                      onClick={() => handleRemoveMember(member.id)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove member"
+                    >
+                      <UserMinus className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </Modal>
   );
 }
 
