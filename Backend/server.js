@@ -5,9 +5,9 @@ require('dotenv').config();
 const routes = require('./routes');
 const app = express();
 
-// Middleware
+// CORS — allow frontend URL (works for both localhost and Railway deployed URL)
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: process.env.FRONTEND_URL || '*',
   credentials: true
 }));
 app.use(express.json());
@@ -39,8 +39,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
+// Start server — Railway provides PORT automatically
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
 });

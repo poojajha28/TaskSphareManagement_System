@@ -1,79 +1,107 @@
-# TaskSphere - Task Management System
-
-A **Task management system** where users can create tasks, assign them to team members, and track progress with a leaderboard for top performers.
-
----
-
-## 🎯 What Does This Project Do?
-
-This is a **web application** that helps teams manage their work:
-
-1. **Admin** creates tasks and assigns them to users
-2. **Users** complete tasks before the deadline
-3. **Leaderboard** shows top performers by tasks completed
+# TaskSphere — Team Task Management System
+A web application where teams can create projects, assign tasks, and track progress. Like a simple version of Trello/Asana.
 
 ---
 
-## ✨ Main Features
+## Features
+### 1. User Authentication
+- Signup with Name, Email, Password (choose role: Admin or Member)
+- Secure login using JWT tokens
 
-### 1. **Role-Based Access Control (Admin/Member)**
+### 2. Project Management
+- Create projects — creator automatically becomes Admin
+- Admin can add/remove members
+- Members can view their assigned projects
 
-> **How roles work:**  
-> When a new user signs up, the `role` column in the **users** table is set to `user` by default.  
-> To make someone an **Admin**, you need to manually update the `role` column to `admin` in the database.  
-> ```sql
-> UPDATE users SET role = 'admin' WHERE email = 'your-email@example.com';
-> ```
+### 3. Task Management
+- Create tasks with Title, Description, Due Date, Priority (Low/Medium/High)
+- Assign tasks to users
+- Update status: To Do → In Progress → Done
 
-#### **Regular User (Member)**
-- Can **only view their own assigned tasks** and their personal progress
-- Can see **their own deadlines, task status, and due dates**
-- Can update the status of their assigned tasks (To Do → In Progress → Review → Done)
-- Cannot see other team members' tasks or progress
-- Cannot create or assign tasks
+### 4. Dashboard
+- Total tasks
+- Tasks by status (To Do, In Progress, Done)
+- Tasks per user (Admin only)
+- Overdue tasks
 
-#### **Admin User**
-- Can **view all tasks** across all team members
-- Can see **everyone's progress, deadlines, and due dates**
-- Can **create new tasks** with title, description, priority, and deadline
-- Can **assign tasks** to any team member
-- Can access the **Admin Users panel** to manage team members
-- Has full visibility into the entire project management system
-
-### 2. **Task Management**
-- Create tasks with title, description, priority (low/medium/high)
-- Set deadline and estimated hours
-- Track status: To Do → In Progress → Review → Done
-- **Overdue warnings** if task is late
-
-### 3. **Leaderboard** 🥇
-- See top 10 performers
-- Ranked by tasks completed
-- Motivates healthy competition
+### 5. Role-Based Access
+- **Admin:** Can manage all tasks and users
+- **Member:** Can view and update only their assigned tasks
 
 ---
 
-## 🛠 Technologies Used
+## Tech Stack
 
-### Frontend (What User Sees):
-- **React.js** - For building user interface
-- **Tailwind CSS** - For styling and design
-- **React Router** - For page navigation
-
-### Backend (Server Side):
-- **Node.js + Express** - For creating API
-- **MySQL** - For storing data
-- **JWT** - For secure login
-- **bcrypt** - For password encryption
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React, Tailwind CSS, Vite |
+| Backend | Node.js, Express.js |
+| Database | MySQL |
+| Auth | JWT + bcrypt |
+| Deployment | Railway |
 
 ---
 
-## 📊 Database Tables
+## Database Design
 
-The system uses **3 main tables**:
+4 tables with proper relationships (Foreign Keys):
 
-1. **users** - Stores user information (name, email, password, tasks_completed)
-2. **tasks** - Stores all tasks (title, description, deadline, assigned user)
-3. **projects** - Stores projects information
+```
+Users ──────────── Tasks         (One-to-Many: assigned_to)
+Users ──────────── Projects      (One-to-Many: created_by)
+Users ◄──────────► Projects      (Many-to-Many: via project_members table)
+Projects ────────── Tasks        (One-to-Many: project_id)
+```
 
 ---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/signup` | Register new user |
+| POST | `/api/auth/login` | Login |
+| GET | `/api/auth/me` | Get current user |
+| GET | `/api/projects` | Get projects |
+| POST | `/api/projects` | Create project |
+| GET | `/api/projects/:id/members` | Get members |
+| POST | `/api/projects/:id/members` | Add member |
+| DELETE | `/api/projects/:id/members/:userId` | Remove member |
+| GET | `/api/tasks` | Get tasks |
+| POST | `/api/tasks` | Create task |
+| PATCH | `/api/tasks/:id` | Update task status |
+| GET | `/api/tasks/dashboard-stats` | Dashboard stats |
+| GET | `/api/tasks/overdue` | Overdue tasks |
+
+---
+
+## Deployment — Railway
+
+### Step 1: Push to GitHub
+```bash
+git add .
+git commit -m "Ready for deployment"
+git push origin main
+```
+
+### Step 2: Create Railway Project
+1. Go to [railway.app](https://railway.app) → Login with GitHub
+2. Click **"New Project"** → **"Empty Project"**
+
+### Step 3: Add MySQL
+1. Click **"+ New"** → **"Database"** → **"MySQL"**
+2. Go to MySQL service → **"Data"** tab → run `Backend/config/schema.sql`
+
+### Step 4: Deploy Backend
+1. Click **"+ New"** → **"GitHub Repo"** → Select your repo
+2. Set Root Directory: **`Backend`**
+3. Add these environment variables:
+
+4. Go to **Settings** → **Networking** → **Generate Domain**
+5. Copy the Backend URL
+
+### Step 5: Deploy Frontend
+1. Click **"+ New"** → **"GitHub Repo"** → Same repo
+2. Set Root Directory: **`Frontend`**
+3. Add environment variable:
+4. Go to **Settings** → **Networking** → **Generate Domain**
