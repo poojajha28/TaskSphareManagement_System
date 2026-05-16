@@ -64,7 +64,10 @@ class TaskService {
       );
       [perUserQuery] = await pool.execute(
         `SELECT u.id, u.name, COUNT(t.id) as task_count,
-                SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) as completed_count
+                SUM(CASE WHEN t.status = 'todo' THEN 1 ELSE 0 END) as todo_count,
+                SUM(CASE WHEN t.status = 'in-progress' THEN 1 ELSE 0 END) as in_progress_count,
+                SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) as completed_count,
+                SUM(CASE WHEN t.status <> 'done' AND t.due_date IS NOT NULL AND t.due_date < NOW() THEN 1 ELSE 0 END) as overdue_count
          FROM users u
          LEFT JOIN tasks t ON t.assigned_to = u.id
          GROUP BY u.id, u.name

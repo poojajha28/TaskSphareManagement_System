@@ -72,8 +72,8 @@ function Dashboard() {
         <div className="flex items-center space-x-3 mb-2">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-lg blur-lg opacity-30 animate-pulse"></div>
-            <h1 className="relative text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
-              Welcome back, {userProfile?.displayName}! 👋
+            <h1 className="relative text-3xl font-bold text-white">
+              Welcome back, {userProfile?.displayName}!
             </h1>
           </div>
         </div>
@@ -152,6 +152,105 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Tasks Per User - Full Width Horizontal (Admin Only) */}
+      {isAdmin && stats.tasksPerUser && stats.tasksPerUser.length > 0 && (
+        <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-amber-500/20 transition-all duration-300 mb-8">
+          <div className="px-6 py-4 bg-amber-500/10 border-b border-white/[0.06] flex items-center justify-between">
+            <h3 className="text-lg font-bold text-white flex items-center space-x-2">
+              <UserCheck className="w-5 h-5 text-amber-400" />
+              <span>Tasks Per User</span>
+            </h3>
+            <span className="text-xs font-semibold text-amber-400/80 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">{stats.tasksPerUser.length} members</span>
+          </div>
+          <div className="p-5 overflow-x-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {stats.tasksPerUser.map((u) => {
+                const total = Number(u.task_count) || 0;
+                const todo = Number(u.todo_count) || 0;
+                const inProgress = Number(u.in_progress_count) || 0;
+                const done = Number(u.completed_count) || 0;
+                const overdue = Number(u.overdue_count) || 0;
+                const donePercent = total > 0 ? Math.round((done / total) * 100) : 0;
+
+                return (
+                  <div key={u.id} className="p-4 bg-white/5 rounded-xl hover:bg-amber-500/[0.06] transition-all duration-300 border border-white/[0.04] hover:border-amber-500/20 hover:shadow-lg hover:shadow-amber-500/5 group">
+                    {/* User header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
+                          <span className="text-white font-bold text-sm">{u.name?.charAt(0)?.toUpperCase() || 'U'}</span>
+                        </div>
+                        <div>
+                          <span className="text-sm font-semibold text-white">{u.name}</span>
+                          <p className="text-xs text-gray-500">{total} tasks</p>
+                        </div>
+                      </div>
+                      <span className="text-sm font-bold text-amber-400">{donePercent}%</span>
+                    </div>
+
+                    {/* Progress bar */}
+                    <div className="w-full bg-white/10 rounded-full h-2 mb-3 overflow-hidden">
+                      <div className="h-full flex">
+                        {done > 0 && (
+                          <div
+                            className="bg-emerald-500 h-full transition-all duration-500"
+                            style={{ width: `${total > 0 ? (done / total) * 100 : 0}%` }}
+                          ></div>
+                        )}
+                        {inProgress > 0 && (
+                          <div
+                            className="bg-amber-500 h-full transition-all duration-500"
+                            style={{ width: `${total > 0 ? (inProgress / total) * 100 : 0}%` }}
+                          ></div>
+                        )}
+                        {todo > 0 && (
+                          <div
+                            className="bg-gray-500 h-full transition-all duration-500"
+                            style={{ width: `${total > 0 ? (todo / total) * 100 : 0}%` }}
+                          ></div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Status badges */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center space-x-2 px-2 py-1.5 bg-gray-500/10 rounded-lg border border-gray-500/20">
+                        <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                        <span className="text-xs text-gray-400">To Do</span>
+                        <span className="text-xs font-bold text-gray-300 ml-auto">{todo}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 px-2 py-1.5 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                        <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+                        <span className="text-xs text-amber-400">In Progress</span>
+                        <span className="text-xs font-bold text-amber-300 ml-auto">{inProgress}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 px-2 py-1.5 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                        <span className="text-xs text-emerald-400">Done</span>
+                        <span className="text-xs font-bold text-emerald-300 ml-auto">{done}</span>
+                      </div>
+                      {overdue > 0 ? (
+                        <div className="flex items-center space-x-2 px-2 py-1.5 bg-red-500/10 rounded-lg border border-red-500/20">
+                          <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse"></div>
+                          <span className="text-xs text-red-400">Overdue</span>
+                          <span className="text-xs font-bold text-red-300 ml-auto">{overdue}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2 px-2 py-1.5 bg-emerald-500/5 rounded-lg border border-emerald-500/10">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                          <span className="text-xs text-emerald-500">No Overdue</span>
+                          <span className="text-xs font-bold text-emerald-400 ml-auto">✓</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Tasks */}
@@ -259,33 +358,6 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Tasks Per User (Admin Only) */}
-          {isAdmin && stats.tasksPerUser && stats.tasksPerUser.length > 0 && (
-            <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/10 transition-all duration-300">
-              <div className="px-6 py-4 bg-indigo-500/10 border-b border-white/[0.06]">
-                <h3 className="text-lg font-bold text-white flex items-center space-x-2">
-                  <UserCheck className="w-5 h-5 text-indigo-400" />
-                  <span>Tasks Per User</span>
-                </h3>
-              </div>
-              <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
-                {stats.tasksPerUser.map((u) => (
-                  <div key={u.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl hover:bg-indigo-500/10 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">{u.name?.charAt(0)?.toUpperCase() || 'U'}</span>
-                      </div>
-                      <span className="text-sm font-medium text-gray-300 truncate max-w-[120px]">{u.name}</span>
-                    </div>
-                    <div className="flex items-center space-x-3 text-xs">
-                      <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-lg font-bold border border-blue-500/30">{u.task_count} total</span>
-                      <span className="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-lg font-bold border border-emerald-500/30">{u.completed_count} done</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Quick Actions */}
           <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/10 transition-all duration-300">
@@ -299,19 +371,19 @@ function Dashboard() {
               {isAdmin && (
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start group hover:bg-blue-500/10 hover:border-blue-500/30 hover:text-blue-400 transition-all duration-300 transform hover:scale-[1.02]"
+                  className="w-full justify-start text-white hover:bg-blue-500/10 hover:border-blue-500/30"
                   onClick={() => navigate('/tasks')}
                 >
-                  <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
+                  <Plus className="w-4 h-4 mr-2" />
                   Create New Task
                 </Button>
               )}
               <Button 
                 variant="outline" 
-                className="w-full justify-start group hover:bg-purple-500/10 hover:border-purple-500/30 hover:text-purple-400 transition-all duration-300 transform hover:scale-[1.02]"
+                className="w-full justify-start text-white hover:bg-purple-500/10 hover:border-purple-500/30"
                 onClick={() => navigate('/projects')}
               >
-                <Users className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                <Users className="w-4 h-4 mr-2" />
                 View Projects
               </Button>
             </div>
