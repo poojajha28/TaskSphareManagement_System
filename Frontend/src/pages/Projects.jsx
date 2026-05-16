@@ -72,7 +72,7 @@ function Projects() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -82,8 +82,8 @@ function Projects() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-white">Projects</h1>
+          <p className="text-gray-400 mt-1">
             {isAdmin ? 'Manage your team projects and collaborations' : 'View your assigned projects'}
           </p>
         </div>
@@ -99,25 +99,25 @@ function Projects() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex items-center space-x-2">
-          <Filter className="w-5 h-5 text-gray-500" />
+          <Filter className="w-5 h-5 text-gray-400" />
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-white/5 border border-white/10 text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">All Projects</option>
-            <option value="created-by-me">Created by Me</option>
+            <option value="all" className="bg-[#12122a]">All Projects</option>
+            <option value="created-by-me" className="bg-[#12122a]">Created by Me</option>
           </select>
         </div>
         
         <div className="flex items-center space-x-2 flex-1 max-w-md">
-          <Search className="w-5 h-5 text-gray-500" />
+          <Search className="w-5 h-5 text-gray-400" />
           <input
             type="text"
             placeholder="Search projects..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
           />
         </div>
       </div>
@@ -140,9 +140,9 @@ function Projects() {
 
       {filteredProjects.length === 0 && (
         <div className="text-center py-12">
-          <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No projects found</h3>
-          <p className="text-gray-600 mb-4">
+          <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-white mb-2">No projects found</h3>
+          <p className="text-gray-400 mb-4">
             {searchTerm || filter !== 'all' 
               ? 'Try adjusting your search or filter criteria.' 
               : 'Create your first project to get started!'}
@@ -239,7 +239,7 @@ function MembersModal({ project, onClose, isCreator, isAdmin }) {
     <Modal onClose={onClose} title={`${project.name} — Members`} size="lg">
       {loading ? (
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
         </div>
       ) : (
         <div className="space-y-4">
@@ -259,21 +259,21 @@ function MembersModal({ project, onClose, isCreator, isAdmin }) {
 
           {/* Add User Selector */}
           {showAddUser && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3 animate-fadeIn">
-              <h4 className="font-semibold text-gray-800 text-sm">Select user to add:</h4>
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 space-y-3 animate-fadeIn">
+              <h4 className="font-semibold text-gray-200 text-sm">Select user to add:</h4>
               {nonMembers.length === 0 ? (
-                <p className="text-sm text-gray-500">All users are already members of this project.</p>
+                <p className="text-sm text-gray-400">All users are already members of this project.</p>
               ) : (
                 <div className="max-h-48 overflow-y-auto space-y-2">
                   {nonMembers.map(u => (
-                    <div key={u.id} className="flex items-center justify-between p-2 bg-white rounded-lg hover:bg-blue-50 transition-colors">
+                    <div key={u.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg hover:bg-blue-500/10 transition-colors">
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold text-xs">{u.name?.charAt(0)?.toUpperCase() || 'U'}</span>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-800">{u.name}</p>
-                          <p className="text-xs text-gray-500">{u.email}</p>
+                          <p className="text-sm font-medium text-gray-200">{u.name}</p>
+                          <p className="text-xs text-gray-400">{u.email}</p>
                         </div>
                       </div>
                       <Button size="sm" onClick={() => handleAddMember(u.id)}>Add</Button>
@@ -287,10 +287,10 @@ function MembersModal({ project, onClose, isCreator, isAdmin }) {
           {/* Current Members */}
           <div className="space-y-2">
             {members.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">No members yet.</p>
+              <p className="text-sm text-gray-400 text-center py-4">No members yet.</p>
             ) : (
               members.map(member => (
-                <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div key={member.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
                   <div className="flex items-center space-x-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       member.project_role === 'admin' 
@@ -301,21 +301,21 @@ function MembersModal({ project, onClose, isCreator, isAdmin }) {
                     </div>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <p className="text-sm font-medium text-gray-800">{member.name}</p>
+                        <p className="text-sm font-medium text-gray-200">{member.name}</p>
                         {member.project_role === 'admin' && (
-                          <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold flex items-center space-x-1">
+                          <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-xs font-bold flex items-center space-x-1 border border-red-500/30">
                             <Shield className="w-3 h-3" />
                             <span>Creator</span>
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500">{member.email}</p>
+                      <p className="text-xs text-gray-400">{member.email}</p>
                     </div>
                   </div>
                   {canManageMembers && member.project_role !== 'admin' && (
                     <button
                       onClick={() => handleRemoveMember(member.id)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                       title="Remove member"
                     >
                       <UserMinus className="w-4 h-4" />
@@ -371,50 +371,50 @@ function CreateProjectModal({ onClose, onSubmit }) {
     <Modal onClose={onClose} title="Create New Project">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Project Name *
           </label>
           <input
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
             placeholder="Enter project name"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Description
           </label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={3}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
             placeholder="Enter project description"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Priority
             </label>
             <select
               value={formData.priority}
               onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-white/5 border border-white/10 text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
+              <option value="low" className="bg-[#12122a]">Low</option>
+              <option value="medium" className="bg-[#12122a]">Medium</option>
+              <option value="high" className="bg-[#12122a]">High</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Estimated Hours
             </label>
             <input
@@ -422,21 +422,21 @@ function CreateProjectModal({ onClose, onSubmit }) {
               min="1"
               value={formData.estimatedHours}
               onChange={(e) => setFormData({ ...formData, estimatedHours: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
               placeholder="Hours"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Due Date
           </label>
           <input
             type="date"
             value={formData.dueDate}
             onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white/5 border border-white/10 text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 

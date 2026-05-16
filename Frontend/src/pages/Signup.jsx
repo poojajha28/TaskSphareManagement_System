@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, UserPlus, Shield, User } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, Shield, User, ArrowLeft } from 'lucide-react';
 import Button from '../components/Button';
 
 function Signup() {
@@ -52,12 +52,27 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-[#0a0a1a] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-pink-600/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-blue-600/15 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+        ></div>
+      </div>
+
+      {/* Back to Landing */}
+      <div className="absolute top-6 left-6 z-10">
+        <Link to="/landing" className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm">Back</span>
+        </Link>
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
@@ -69,22 +84,22 @@ function Signup() {
             </div>
           </div>
         </div>
-        <h2 className="mt-8 text-center text-4xl font-extrabold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="mt-8 text-center text-4xl font-extrabold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
           Create your TaskSphere account
         </h2>
-        <p className="mt-4 text-center text-base text-gray-600">
+        <p className="mt-4 text-center text-base text-gray-400">
           Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-purple-600 hover:text-pink-600 transition-colors">
+          <Link to="/login" className="font-semibold text-purple-400 hover:text-pink-400 transition-colors">
             Sign in here
           </Link>
         </p>
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-white/80 backdrop-blur-xl py-10 px-8 shadow-2xl sm:rounded-3xl border border-white/20">
+        <div className="bg-white/[0.03] backdrop-blur-xl py-10 px-8 shadow-2xl sm:rounded-3xl border border-white/10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="displayName" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="displayName" className="block text-sm font-semibold text-gray-300 mb-2">
                 Full Name
               </label>
               <div className="relative">
@@ -96,14 +111,14 @@ function Signup() {
                   required
                   value={formData.displayName}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-4 py-3 border-2 border-gray-200 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:text-sm transition-all duration-300 hover:border-purple-300"
+                  className="appearance-none block w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:text-sm transition-all duration-300 hover:border-purple-500/30"
                   placeholder="Enter your full name"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-300 mb-2">
                 Email address
               </label>
               <div className="relative">
@@ -115,7 +130,7 @@ function Signup() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-4 py-3 border-2 border-gray-200 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:text-sm transition-all duration-300 hover:border-purple-300"
+                  className="appearance-none block w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:text-sm transition-all duration-300 hover:border-purple-500/30"
                   placeholder="Enter your email"
                 />
               </div>
@@ -123,7 +138,7 @@ function Signup() {
 
             {/* Role Selection */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label className="block text-sm font-semibold text-gray-300 mb-3">
                 Select Role
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -132,8 +147,8 @@ function Signup() {
                   onClick={() => setFormData({ ...formData, role: 'user' })}
                   className={`relative flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer ${
                     formData.role === 'user'
-                      ? 'border-purple-500 bg-purple-50 shadow-lg shadow-purple-500/20'
-                      : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/50'
+                      ? 'border-purple-500/50 bg-purple-500/10 shadow-lg shadow-purple-500/20'
+                      : 'border-white/10 bg-white/5 hover:border-purple-500/30 hover:bg-purple-500/5'
                   }`}
                 >
                   {formData.role === 'user' && (
@@ -146,14 +161,14 @@ function Signup() {
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-all ${
                     formData.role === 'user'
                       ? 'bg-gradient-to-br from-purple-500 to-blue-500 shadow-md'
-                      : 'bg-gray-100'
+                      : 'bg-white/10'
                   }`}>
-                    <User className={`w-6 h-6 ${formData.role === 'user' ? 'text-white' : 'text-gray-500'}`} />
+                    <User className={`w-6 h-6 ${formData.role === 'user' ? 'text-white' : 'text-gray-400'}`} />
                   </div>
-                  <span className={`text-sm font-bold ${formData.role === 'user' ? 'text-purple-700' : 'text-gray-600'}`}>
+                  <span className={`text-sm font-bold ${formData.role === 'user' ? 'text-purple-300' : 'text-gray-400'}`}>
                     Member
                   </span>
-                  <span className={`text-xs mt-1 text-center ${formData.role === 'user' ? 'text-purple-500' : 'text-gray-400'}`}>
+                  <span className={`text-xs mt-1 text-center ${formData.role === 'user' ? 'text-purple-400/70' : 'text-gray-500'}`}>
                     View & update assigned tasks
                   </span>
                 </button>
@@ -163,8 +178,8 @@ function Signup() {
                   onClick={() => setFormData({ ...formData, role: 'admin' })}
                   className={`relative flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer ${
                     formData.role === 'admin'
-                      ? 'border-red-500 bg-red-50 shadow-lg shadow-red-500/20'
-                      : 'border-gray-200 bg-white hover:border-red-300 hover:bg-red-50/50'
+                      ? 'border-red-500/50 bg-red-500/10 shadow-lg shadow-red-500/20'
+                      : 'border-white/10 bg-white/5 hover:border-red-500/30 hover:bg-red-500/5'
                   }`}
                 >
                   {formData.role === 'admin' && (
@@ -177,14 +192,14 @@ function Signup() {
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-all ${
                     formData.role === 'admin'
                       ? 'bg-gradient-to-br from-red-500 to-pink-500 shadow-md'
-                      : 'bg-gray-100'
+                      : 'bg-white/10'
                   }`}>
-                    <Shield className={`w-6 h-6 ${formData.role === 'admin' ? 'text-white' : 'text-gray-500'}`} />
+                    <Shield className={`w-6 h-6 ${formData.role === 'admin' ? 'text-white' : 'text-gray-400'}`} />
                   </div>
-                  <span className={`text-sm font-bold ${formData.role === 'admin' ? 'text-red-700' : 'text-gray-600'}`}>
+                  <span className={`text-sm font-bold ${formData.role === 'admin' ? 'text-red-300' : 'text-gray-400'}`}>
                     Admin
                   </span>
-                  <span className={`text-xs mt-1 text-center ${formData.role === 'admin' ? 'text-red-500' : 'text-gray-400'}`}>
+                  <span className={`text-xs mt-1 text-center ${formData.role === 'admin' ? 'text-red-400/70' : 'text-gray-500'}`}>
                     Manage tasks & users
                   </span>
                 </button>
@@ -192,7 +207,7 @@ function Signup() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-300 mb-2">
                 Password
               </label>
               <div className="relative">
@@ -204,7 +219,7 @@ function Signup() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-4 py-3 border-2 border-gray-200 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:text-sm pr-12 transition-all duration-300 hover:border-purple-300"
+                  className="appearance-none block w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:text-sm pr-12 transition-all duration-300 hover:border-purple-500/30"
                   placeholder="Enter your password"
                 />
                 <button
@@ -213,19 +228,19 @@ function Signup() {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeOff className="h-5 w-5 text-gray-500 hover:text-gray-300" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <Eye className="h-5 w-5 text-gray-500 hover:text-gray-300" />
                   )}
                 </button>
               </div>
-              <p className="mt-2 text-xs text-purple-600 font-medium">
+              <p className="mt-2 text-xs text-purple-400 font-medium">
                 Password must be at least 6 characters long
               </p>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-300 mb-2">
                 Confirm Password
               </label>
               <div className="relative">
@@ -237,7 +252,7 @@ function Signup() {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-4 py-3 border-2 border-gray-200 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:text-sm transition-all duration-300 hover:border-purple-300"
+                  className="appearance-none block w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:text-sm transition-all duration-300 hover:border-purple-500/30"
                   placeholder="Confirm your password"
                 />
               </div>
@@ -246,7 +261,7 @@ function Signup() {
             <div>
               <Button
                 type="submit"
-                className="w-full flex justify-center items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300"
+                className="w-full flex justify-center items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300"
                 disabled={loading}
               >
                 {loading ? (

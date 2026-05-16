@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
@@ -18,31 +19,47 @@ function ProtectedRoute({ children }) {
   
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a1a]">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
       </div>
     );
   }
   
-  return user ? children : <Navigate to="/login" />;
+  return user ? children : <Navigate to="/landing" />;
+}
+
+function PublicRoute({ children }) {
+  const { user } = useAuth();
+  return user ? <Navigate to="/dashboard" /> : children;
 }
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Toaster position="top-right" />
+        <div className="min-h-screen bg-[#0a0a1a]">
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: '#1a1a2e',
+                color: '#e2e8f0',
+                border: '1px solid rgba(255,255,255,0.1)',
+              },
+            }}
+          />
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route path="/landing" element={<PublicRoute><LandingPage /></PublicRoute>} />
+            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
             <Route path="/*" element={
               <ProtectedRoute>
                 <div className="flex flex-col min-h-screen">
                   <Navbar />
                   <main className="flex-1">
                     <Routes>
-                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/projects" element={<Projects />} />
                       <Route path="/tasks" element={<Tasks />} />
                       <Route path="/leaderboard" element={<Leaderboard />} />

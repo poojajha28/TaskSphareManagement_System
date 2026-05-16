@@ -60,7 +60,7 @@ function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -71,84 +71,84 @@ function Dashboard() {
       <div className="mb-8 transform transition-all duration-500 animate-fadeIn">
         <div className="flex items-center space-x-3 mb-2">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-lg blur-lg opacity-50 animate-pulse"></div>
-            <h1 className="relative text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-lg blur-lg opacity-30 animate-pulse"></div>
+            <h1 className="relative text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
               Welcome back, {userProfile?.displayName}! 👋
             </h1>
           </div>
         </div>
-        <p className="text-gray-600 mt-2 text-lg">Here's what's happening with your tasks today.</p>
+        <p className="text-gray-400 mt-2 text-lg">Here's what's happening with your tasks today.</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {/* Total Tasks */}
-        <div className="group bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-lg shadow-blue-500/10 p-6 border border-blue-100 hover:shadow-xl hover:shadow-blue-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
+        <div className="group bg-white/[0.03] rounded-2xl p-6 border border-white/[0.06] hover:bg-white/[0.06] hover:border-blue-500/30 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Total Tasks</p>
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
+            <p className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Total Tasks</p>
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
           </div>
-          <p className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">{stats.totalTasks}</p>
-          <div className="mt-3 h-1 bg-blue-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full w-full"></div>
+          <p className="text-4xl font-extrabold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent">{stats.totalTasks}</p>
+          <div className="mt-3 h-1 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full w-full"></div>
           </div>
         </div>
 
         {/* To Do */}
-        <div className="group bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-lg shadow-slate-500/10 p-6 border border-slate-100 hover:shadow-xl hover:shadow-slate-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
+        <div className="group bg-white/[0.03] rounded-2xl p-6 border border-white/[0.06] hover:bg-white/[0.06] hover:border-gray-500/30 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">To Do</p>
-            <div className="w-12 h-12 bg-gradient-to-br from-slate-400 to-slate-600 rounded-xl flex items-center justify-center shadow-lg shadow-slate-500/30 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
+            <p className="text-sm font-semibold text-gray-400 uppercase tracking-wide">To Do</p>
+            <div className="w-12 h-12 bg-gradient-to-br from-slate-400 to-slate-600 rounded-xl flex items-center justify-center shadow-lg shadow-slate-500/25 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
               <ListTodo className="w-6 h-6 text-white" />
             </div>
           </div>
-          <p className="text-4xl font-extrabold bg-gradient-to-r from-slate-600 to-slate-800 bg-clip-text text-transparent">{stats.todoTasks}</p>
-          <div className="mt-3 h-1 bg-slate-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-slate-400 to-slate-600 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.todoTasks / stats.totalTasks) * 100 : 0}%` }}></div>
+          <p className="text-4xl font-extrabold bg-gradient-to-r from-slate-300 to-slate-400 bg-clip-text text-transparent">{stats.todoTasks}</p>
+          <div className="mt-3 h-1 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-slate-400 to-slate-500 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.todoTasks / stats.totalTasks) * 100 : 0}%` }}></div>
           </div>
         </div>
 
         {/* In Progress */}
-        <div className="group bg-gradient-to-br from-white to-yellow-50 rounded-2xl shadow-lg shadow-yellow-500/10 p-6 border border-yellow-100 hover:shadow-xl hover:shadow-yellow-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
+        <div className="group bg-white/[0.03] rounded-2xl p-6 border border-white/[0.06] hover:bg-white/[0.06] hover:border-amber-500/30 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">In Progress</p>
-            <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/30 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
+            <p className="text-sm font-semibold text-gray-400 uppercase tracking-wide">In Progress</p>
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/25 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
           </div>
-          <p className="text-4xl font-extrabold bg-gradient-to-r from-yellow-600 to-yellow-800 bg-clip-text text-transparent">{stats.inProgressTasks}</p>
-          <div className="mt-3 h-1 bg-yellow-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.inProgressTasks / stats.totalTasks) * 100 : 0}%` }}></div>
+          <p className="text-4xl font-extrabold bg-gradient-to-r from-amber-300 to-amber-400 bg-clip-text text-transparent">{stats.inProgressTasks}</p>
+          <div className="mt-3 h-1 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.inProgressTasks / stats.totalTasks) * 100 : 0}%` }}></div>
           </div>
         </div>
 
         {/* Completed */}
-        <div className="group bg-gradient-to-br from-white to-green-50 rounded-2xl shadow-lg shadow-green-500/10 p-6 border border-green-100 hover:shadow-xl hover:shadow-green-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
+        <div className="group bg-white/[0.03] rounded-2xl p-6 border border-white/[0.06] hover:bg-white/[0.06] hover:border-emerald-500/30 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Done</p>
-            <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
+            <p className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Done</p>
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/25 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
               <CheckCircle className="w-6 h-6 text-white" />
             </div>
           </div>
-          <p className="text-4xl font-extrabold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">{stats.doneTasks}</p>
-          <div className="mt-3 h-1 bg-green-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.doneTasks / stats.totalTasks) * 100 : 0}%` }}></div>
+          <p className="text-4xl font-extrabold bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent">{stats.doneTasks}</p>
+          <div className="mt-3 h-1 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.doneTasks / stats.totalTasks) * 100 : 0}%` }}></div>
           </div>
         </div>
 
         {/* Overdue */}
-        <div className="group bg-gradient-to-br from-white to-red-50 rounded-2xl shadow-lg shadow-red-500/10 p-6 border border-red-100 hover:shadow-xl hover:shadow-red-500/20 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
+        <div className="group bg-white/[0.03] rounded-2xl p-6 border border-white/[0.06] hover:bg-white/[0.06] hover:border-red-500/30 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Overdue</p>
-            <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/30 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
+            <p className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Overdue</p>
+            <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/25 transform transition-transform group-hover:rotate-6 group-hover:scale-110">
               <AlertTriangle className="w-6 h-6 text-white" />
             </div>
           </div>
-          <p className="text-4xl font-extrabold bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">{stats.overdueTasks}</p>
-          <div className="mt-3 h-1 bg-red-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.overdueTasks / stats.totalTasks) * 100 : 0}%` }}></div>
+          <p className="text-4xl font-extrabold bg-gradient-to-r from-red-300 to-red-400 bg-clip-text text-transparent">{stats.overdueTasks}</p>
+          <div className="mt-3 h-1 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-red-400 to-red-500 rounded-full" style={{ width: `${stats.totalTasks > 0 ? (stats.overdueTasks / stats.totalTasks) * 100 : 0}%` }}></div>
           </div>
         </div>
       </div>
@@ -156,16 +156,16 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Tasks */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 mb-8">
-            <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+          <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/10 transition-all duration-300 mb-8">
+            <div className="px-6 py-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b border-white/[0.06] flex justify-between items-center">
+              <h3 className="text-lg font-bold text-white flex items-center space-x-2">
                 <span>📋</span>
                 <span>Recent Tasks</span>
               </h3>
               {isAdmin && (
                 <Button 
                   size="sm" 
-                  className="flex items-center space-x-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transform hover:scale-105 transition-all"
+                  className="flex items-center space-x-1"
                   onClick={() => navigate('/tasks')}
                 >
                   <Plus className="w-4 h-4" />
@@ -186,14 +186,14 @@ function Dashboard() {
                 <div className="text-center py-12">
                   <div className="relative mx-auto w-24 h-24 mb-6">
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full blur-lg opacity-20 animate-pulse"></div>
-                    <Calendar className="w-24 h-24 text-blue-400 relative" />
+                    <Calendar className="w-24 h-24 text-blue-400/50 relative" />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-2">No tasks yet</h4>
-                  <p className="text-gray-600 mb-6">
+                  <h4 className="text-xl font-bold text-white mb-2">No tasks yet</h4>
+                  <p className="text-gray-400 mb-6">
                     {isAdmin ? 'Create your first task to get started!' : 'No tasks assigned to you yet.'}
                   </p>
                   {isAdmin && (
-                    <Button onClick={() => navigate('/tasks')} className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transform hover:scale-105 transition-all">
+                    <Button onClick={() => navigate('/tasks')}>
                       Create Task
                     </Button>
                   )}
@@ -204,9 +204,9 @@ function Dashboard() {
 
           {/* Overdue Tasks Section */}
           {overdueTasks.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-lg border border-red-100 overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="px-6 py-4 bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100 flex justify-between items-center">
-                <h3 className="text-lg font-bold text-red-700 flex items-center space-x-2">
+            <div className="bg-white/[0.03] rounded-2xl border border-red-500/20 overflow-hidden hover:border-red-500/30 transition-all duration-300">
+              <div className="px-6 py-4 bg-red-500/10 border-b border-red-500/20 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-red-400 flex items-center space-x-2">
                   <AlertTriangle className="w-5 h-5" />
                   <span>Overdue Tasks</span>
                   <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{overdueTasks.length}</span>
@@ -228,32 +228,32 @@ function Dashboard() {
         {/* Right Sidebar */}
         <div className="space-y-6">
           {/* Profile Card */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 group">
+          <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/10 transition-all duration-300 group">
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-20"></div>
             <div className="px-6 pb-6 -mt-10">
               <div className="text-center">
                 <div className="relative w-20 h-20 mx-auto mb-4">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                  <div className="relative w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto shadow-xl border-4 border-white transform transition-transform group-hover:scale-110">
+                  <div className="relative w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto shadow-xl border-4 border-[#0a0a1a] transform transition-transform group-hover:scale-110">
                     <span className="text-white font-bold text-2xl">
                       {userProfile?.displayName?.charAt(0)?.toUpperCase() || 'U'}
                     </span>
                   </div>
                 </div>
-                <h4 className="font-bold text-gray-900 text-lg">{userProfile?.displayName}</h4>
-                <p className="text-sm text-gray-500 mb-2">{userProfile?.email}</p>
+                <h4 className="font-bold text-white text-lg">{userProfile?.displayName}</h4>
+                <p className="text-sm text-gray-400 mb-2">{userProfile?.email}</p>
                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-4 ${
                   isAdmin ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
                 }`}>
                   {isAdmin ? '🛡️ Admin' : '👤 Member'}
                 </span>
                 
-                <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 group">
+                <div className="text-center p-3 bg-blue-500/10 rounded-xl border border-blue-500/20 group">
                     <div className="flex items-center justify-center space-x-1 mb-1">
-                      <CheckCircle className="w-5 h-5 text-blue-600" />
-                      <span className="font-extrabold text-xl text-gray-900">{userProfile?.tasksCompleted || 0}</span>
+                      <CheckCircle className="w-5 h-5 text-blue-400" />
+                      <span className="font-extrabold text-xl text-white">{userProfile?.tasksCompleted || 0}</span>
                     </div>
-                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Tasks Done</p>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tasks Done</p>
                   </div>
               </div>
             </div>
@@ -261,25 +261,25 @@ function Dashboard() {
 
           {/* Tasks Per User (Admin Only) */}
           {isAdmin && stats.tasksPerUser && stats.tasksPerUser.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
-                  <UserCheck className="w-5 h-5 text-indigo-600" />
+            <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/10 transition-all duration-300">
+              <div className="px-6 py-4 bg-indigo-500/10 border-b border-white/[0.06]">
+                <h3 className="text-lg font-bold text-white flex items-center space-x-2">
+                  <UserCheck className="w-5 h-5 text-indigo-400" />
                   <span>Tasks Per User</span>
                 </h3>
               </div>
               <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
                 {stats.tasksPerUser.map((u) => (
-                  <div key={u.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-indigo-50 transition-colors">
+                  <div key={u.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl hover:bg-indigo-500/10 transition-colors">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center">
                         <span className="text-white font-bold text-xs">{u.name?.charAt(0)?.toUpperCase() || 'U'}</span>
                       </div>
-                      <span className="text-sm font-medium text-gray-800 truncate max-w-[120px]">{u.name}</span>
+                      <span className="text-sm font-medium text-gray-300 truncate max-w-[120px]">{u.name}</span>
                     </div>
                     <div className="flex items-center space-x-3 text-xs">
-                      <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-bold">{u.task_count} total</span>
-                      <span className="bg-green-100 text-green-700 px-2 py-1 rounded-lg font-bold">{u.completed_count} done</span>
+                      <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded-lg font-bold border border-blue-500/30">{u.task_count} total</span>
+                      <span className="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-lg font-bold border border-emerald-500/30">{u.completed_count} done</span>
                     </div>
                   </div>
                 ))}
@@ -288,9 +288,9 @@ function Dashboard() {
           )}
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
-            <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+          <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden hover:border-white/10 transition-all duration-300">
+            <div className="px-6 py-4 bg-white/5 border-b border-white/[0.06]">
+              <h3 className="text-lg font-bold text-white flex items-center space-x-2">
                 <span>⚡</span>
                 <span>Quick Actions</span>
               </h3>
@@ -299,7 +299,7 @@ function Dashboard() {
               {isAdmin && (
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start group hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-300 transform hover:scale-[1.02]"
+                  className="w-full justify-start group hover:bg-blue-500/10 hover:border-blue-500/30 hover:text-blue-400 transition-all duration-300 transform hover:scale-[1.02]"
                   onClick={() => navigate('/tasks')}
                 >
                   <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform" />
@@ -308,7 +308,7 @@ function Dashboard() {
               )}
               <Button 
                 variant="outline" 
-                className="w-full justify-start group hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-all duration-300 transform hover:scale-[1.02]"
+                className="w-full justify-start group hover:bg-purple-500/10 hover:border-purple-500/30 hover:text-purple-400 transition-all duration-300 transform hover:scale-[1.02]"
                 onClick={() => navigate('/projects')}
               >
                 <Users className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
@@ -318,21 +318,21 @@ function Dashboard() {
           </div>
 
           {/* Achievement */}
-          <div className="relative bg-gradient-to-br from-purple-500 via-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -mr-16 -mt-16"></div>
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-10 rounded-full -ml-12 -mb-12"></div>
+          <div className="relative bg-gradient-to-br from-purple-600/30 via-blue-600/30 to-indigo-700/30 rounded-2xl p-6 text-white overflow-hidden group hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] border border-purple-500/20">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
             <div className="relative">
               <div className="flex items-center space-x-2 mb-3">
                 <span className="text-3xl animate-bounce">🎉</span>
                 <h3 className="text-xl font-bold">Achievement</h3>
               </div>
-              <p className="text-sm opacity-95 mb-4 leading-relaxed">
-                You've completed <span className="font-bold text-lg">{userProfile?.tasksCompleted || 0}</span> tasks! 
+              <p className="text-sm opacity-95 mb-4 leading-relaxed text-gray-300">
+                You've completed <span className="font-bold text-lg text-white">{userProfile?.tasksCompleted || 0}</span> tasks! 
                 Keep up the great work! 🚀
               </p>
-              <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 border border-white border-opacity-30">
-                <p className="text-xs font-semibold mb-3">Next milestone: {Math.ceil((userProfile?.tasksCompleted || 0) / 10) * 10} tasks</p>
-                <div className="w-full bg-white bg-opacity-30 rounded-full h-3 overflow-hidden">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                <p className="text-xs font-semibold mb-3 text-gray-300">Next milestone: {Math.ceil((userProfile?.tasksCompleted || 0) / 10) * 10} tasks</p>
+                <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
                   <div 
                     className="bg-gradient-to-r from-yellow-300 to-orange-400 h-3 rounded-full transition-all duration-500 shadow-lg"
                     style={{ 

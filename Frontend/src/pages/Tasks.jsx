@@ -9,9 +9,9 @@ import { api } from '../config/api';
 import toast from 'react-hot-toast';
 
 const statusColumns = [
-  { id: 'todo', title: 'To Do', color: 'bg-gray-100' },
-  { id: 'in-progress', title: 'In Progress', color: 'bg-blue-100' },
-  { id: 'done', title: 'Done', color: 'bg-green-100' }
+  { id: 'todo', title: 'To Do', color: 'from-gray-500/20 to-gray-600/20', borderColor: 'border-gray-500/30', textColor: 'text-gray-300' },
+  { id: 'in-progress', title: 'In Progress', color: 'from-blue-500/20 to-blue-600/20', borderColor: 'border-blue-500/30', textColor: 'text-blue-300' },
+  { id: 'done', title: 'Done', color: 'from-emerald-500/20 to-emerald-600/20', borderColor: 'border-emerald-500/30', textColor: 'text-emerald-300' }
 ];
 
 function Tasks() {
@@ -90,7 +90,7 @@ function Tasks() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -100,8 +100,8 @@ function Tasks() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-white">Tasks</h1>
+          <p className="text-gray-400 mt-1">
             {isAdmin ? 'Manage all tasks' : 'View and update your assigned tasks'}
           </p>
         </div>
@@ -125,26 +125,26 @@ function Tasks() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex items-center space-x-2">
-          <Filter className="w-5 h-5 text-gray-500" />
+          <Filter className="w-5 h-5 text-gray-400" />
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-white/5 border border-white/10 text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">{isAdmin ? 'All Tasks' : 'My Tasks'}</option>
-            {isAdmin && <option value="my-tasks">Assigned to Me</option>}
-            {isAdmin && <option value="created-by-me">Created by Me</option>}
+            <option value="all" className="bg-[#12122a]">{isAdmin ? 'All Tasks' : 'My Tasks'}</option>
+            {isAdmin && <option value="my-tasks" className="bg-[#12122a]">Assigned to Me</option>}
+            {isAdmin && <option value="created-by-me" className="bg-[#12122a]">Created by Me</option>}
           </select>
         </div>
 
         <div className="flex items-center space-x-2 flex-1 max-w-md">
-          <Search className="w-5 h-5 text-gray-500" />
+          <Search className="w-5 h-5 text-gray-400" />
           <input
             type="text"
             placeholder="Search tasks..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
           />
         </div>
       </div>
@@ -152,10 +152,10 @@ function Tasks() {
       {/* Kanban Board */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {statusColumns.map(column => (
-          <div key={column.id} className="bg-gray-50 rounded-lg p-4">
-            <div className={`${column.color} rounded-lg p-3 mb-4`}>
-              <h3 className="font-semibold text-gray-900">{column.title}</h3>
-              <span className="text-sm text-gray-600">
+          <div key={column.id} className="bg-white/[0.02] rounded-2xl p-4 border border-white/[0.06]">
+            <div className={`bg-gradient-to-r ${column.color} rounded-xl p-3 mb-4 border ${column.borderColor}`}>
+              <h3 className={`font-semibold ${column.textColor}`}>{column.title}</h3>
+              <span className="text-sm text-gray-400">
                 {getTasksByStatus(column.id).length} tasks
               </span>
             </div>
@@ -290,50 +290,50 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
     <Modal onClose={onClose} title="Create New Task">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Task Title *
           </label>
           <input
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
             placeholder="Enter task title"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Description
           </label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={3}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
             placeholder="Enter task description"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Priority
             </label>
             <select
               value={formData.priority}
               onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-white/5 border border-white/10 text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
+              <option value="low" className="bg-[#12122a]">Low</option>
+              <option value="medium" className="bg-[#12122a]">Medium</option>
+              <option value="high" className="bg-[#12122a]">High</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Estimated Hours
             </label>
             <input
@@ -341,34 +341,34 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
               min="1"
               value={formData.estimatedHours}
               onChange={(e) => setFormData({ ...formData, estimatedHours: e.target.value })}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
               placeholder="Hours"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Due Date
           </label>
           <input
             type="date"
             value={formData.dueDate}
             onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white/5 border border-white/10 text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Assign To Section */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Assign To *
           </label>
           <div className="flex items-center space-x-2">
-            <div className="flex-1 border border-gray-300 rounded-md px-3 py-2 bg-gray-50">
+            <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
               <div className="flex items-center space-x-2">
-                <Users className="w-4 h-4 text-gray-500" />
-                <span className="text-sm">
+                <Users className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-gray-300">
                   {formData.assignedToName || 'Select a user'}
                 </span>
               </div>
@@ -386,7 +386,7 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
 
         {/* Project Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
             Project *
           </label>
           <div className="flex items-center space-x-2">
@@ -400,11 +400,11 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
                   projectName: selected ? selected.name : ''
                 });
               }}
-              className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="flex-1 bg-white/5 border border-white/10 text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">-- Select Project --</option>
+              <option value="" className="bg-[#12122a]">-- Select Project --</option>
               {(localProjects || []).map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id} className="bg-[#12122a]">{p.name}</option>
               ))}
             </select>
             <Button type="button" onClick={() => fetchLocalProjects()} variant="outline" size="sm">
@@ -418,8 +418,8 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
               const total = (pageTasks || []).filter(t => String(t.project_id) === projId).length;
               const completed = (pageTasks || []).filter(t => String(t.project_id) === projId && t.status === 'done').length;
               return (
-                <div className="text-sm text-gray-600 mt-2">
-                  This project has <strong className="text-gray-800">{total}</strong> task{total !== 1 ? 's' : ''} — <span className="text-green-600">{completed}</span> completed
+                <div className="text-sm text-gray-400 mt-2">
+                  This project has <strong className="text-gray-200">{total}</strong> task{total !== 1 ? 's' : ''} — <span className="text-emerald-400">{completed}</span> completed
                 </div>
               );
             })()
@@ -449,8 +449,8 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
           <div className="space-y-4">
             {loadingUsers ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-600 mt-2">Loading users...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                <p className="text-gray-400 mt-2">Loading users...</p>
               </div>
             ) : (
               <>
@@ -459,26 +459,26 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
                     <div
                       key={userData.id}
                       onClick={() => handleUserSelect(userData)}
-                      className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors"
+                      className="p-3 border border-white/10 rounded-xl hover:border-blue-500/50 hover:bg-blue-500/10 cursor-pointer transition-all"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold text-sm">
                             {userData.displayName?.charAt(0)?.toUpperCase() || 'U'}
                           </span>
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
-                            <h4 className="font-medium text-gray-900">
+                            <h4 className="font-medium text-gray-200">
                               {userData.displayName || 'Unknown User'}
                             </h4>
                             {userData.role === 'admin' && (
-                              <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs font-bold">
+                              <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-xs font-bold border border-red-500/30">
                                 ADMIN
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-600">{userData.email}</p>
+                          <p className="text-sm text-gray-400">{userData.email}</p>
                           <div className="flex items-center space-x-4 mt-1">
                             <span className="text-xs text-gray-500">
                               {userData.tasksCompleted || 0} tasks completed
@@ -492,7 +492,7 @@ function CreateTaskModal({ onClose, onSubmit, projects = [], tasks: pageTasks = 
 
                 {users.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
-                    <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <Users className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                     <p>No users found</p>
                   </div>
                 )}

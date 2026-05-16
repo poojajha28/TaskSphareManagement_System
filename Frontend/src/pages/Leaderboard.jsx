@@ -43,7 +43,7 @@ function Leaderboard() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -52,60 +52,60 @@ function Leaderboard() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center space-x-2">
-          <Trophy className="w-8 h-8 text-yellow-500" />
+        <h1 className="text-3xl font-bold text-white flex items-center justify-center space-x-2">
+          <Trophy className="w-8 h-8 text-yellow-400" />
           <span>Leaderboard</span>
         </h1>
-        <p className="text-gray-600 mt-2">See how you rank against other team members</p>
+        <p className="text-gray-400 mt-2">See how you rank against other team members</p>
       </div>
 
       {/* User's Current Rank */}
       {userProfile && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-blue-900 mb-2">Your Current Stats</h3>
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 mb-6">
+          <h3 className="font-semibold text-blue-300 mb-2">Your Current Stats</h3>
           <div className="text-center">
             <div className="flex items-center justify-center space-x-1">
-              <Target className="w-4 h-4 text-blue-500" />
-              <span className="font-bold text-lg">{userProfile.tasksCompleted || 0}</span>
+              <Target className="w-4 h-4 text-blue-400" />
+              <span className="font-bold text-lg text-white">{userProfile.tasksCompleted || 0}</span>
             </div>
-            <p className="text-sm text-gray-600">Tasks Completed</p>
+            <p className="text-sm text-gray-400">Tasks Completed</p>
           </div>
         </div>
       )}
 
       {/* Leaderboard */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="px-6 py-4 bg-gray-50 border-b">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-            <Target className="w-5 h-5 text-blue-500" />
+      <div className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden">
+        <div className="px-6 py-4 bg-white/5 border-b border-white/[0.06]">
+          <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+            <Target className="w-5 h-5 text-blue-400" />
             <span>Top Performers - Tasks Completed</span>
           </h3>
         </div>
         
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-white/5">
           {topUsers.map((user, index) => (
             <div
               key={user.id}
-              className={`px-6 py-4 flex items-center justify-between ${
-                user.uid === userProfile?.uid ? 'bg-blue-50' : 'hover:bg-gray-50'
+              className={`px-6 py-4 flex items-center justify-between transition-colors ${
+                user.uid === userProfile?.uid ? 'bg-blue-500/10' : 'hover:bg-white/5'
               }`}
             >
               <div className="flex items-center space-x-4">
                 <div className="text-2xl">{getRankIcon(index + 1)}</div>
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                     <span className="text-white font-semibold text-sm">
                       {user.displayName?.charAt(0)?.toUpperCase() || 'U'}
                     </span>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-white">
                       {user.displayName || 'Unknown User'}
                       {user.uid === userProfile?.uid && (
-                        <span className="ml-2 text-sm text-blue-600">(You)</span>
+                        <span className="ml-2 text-sm text-blue-400">(You)</span>
                       )}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-400">
                       Member since {user.createdAt?.toDate?.().toLocaleDateString() || 'Unknown'}
                     </p>
                   </div>
@@ -114,12 +114,12 @@ function Leaderboard() {
               
               <div className="text-right">
                 <div className="flex items-center space-x-2">
-                  <Target className="w-5 h-5 text-blue-500" />
-                  <span className="text-xl font-bold text-gray-900">
+                  <Target className="w-5 h-5 text-blue-400" />
+                  <span className="text-xl font-bold text-white">
                     {user.tasksCompleted || 0}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">Rank #{index + 1}</p>
+                <p className="text-sm text-gray-400">Rank #{index + 1}</p>
               </div>
             </div>
           ))}
@@ -128,9 +128,9 @@ function Leaderboard() {
 
       {topUsers.length === 0 && (
         <div className="text-center py-12">
-          <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No rankings yet</h3>
-          <p className="text-gray-600">Start completing tasks to appear on the leaderboard!</p>
+          <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-white mb-2">No rankings yet</h3>
+          <p className="text-gray-400">Start completing tasks to appear on the leaderboard!</p>
         </div>
       )}
     </div>
