@@ -104,8 +104,8 @@ function LandingPage() {
       {/* Navbar */}
       <nav
         className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrollY > 50
-            ? 'bg-[#0a0a1a]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl'
-            : 'bg-transparent'
+          ? 'bg-[#0a0a1a]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl'
+          : 'bg-transparent'
           }`}
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -170,7 +170,7 @@ function LandingPage() {
             TaskSphere is a powerful team task management platform where teams can create projects,
             assign tasks, track progress, and boost productivity like a simple version of{' '}
             <span className="text-blue-400 font-medium">Trello</span> &{' '}
-            <span className="text-purple-400 font-medium">Asana</span>.
+            <span className="text-purple-400 font-medium">Asana</span>
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
@@ -281,8 +281,8 @@ function LandingPage() {
               <div
                 key={feature.title}
                 className={`group relative bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 hover:bg-white/[0.06] transition-all duration-500 hover:border-white/10 hover:scale-[1.02] hover:shadow-2xl ${isVisible('features')
-                    ? 'opacity-100 translate-y-0'
-                    : 'opacity-0 translate-y-10'
+                  ? 'opacity-100 translate-y-0'
+                  : 'opacity-0 translate-y-10'
                   }`}
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
