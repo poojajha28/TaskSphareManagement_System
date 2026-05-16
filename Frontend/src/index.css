@@ -77,3 +77,9 @@
 .animate-pieAppear {
   animation: pieAppear 0.5s ease-out;
 }
+
+/* Make date input calendar icon white for dark theme */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
