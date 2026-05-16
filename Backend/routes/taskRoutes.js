@@ -9,6 +9,7 @@ router.use(authenticateToken);
 
 router.get('/overdue', taskController.getOverdueTasks);
 router.get('/dashboard-stats', taskController.getDashboardStats);
+router.get('/project-wise-stats', taskController.getProjectWiseStats);
 
 router.get('/', taskController.getAllTasks);
 router.post('/', taskController.createTask);

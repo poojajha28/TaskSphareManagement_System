@@ -37,6 +37,11 @@ export const api = {
     return this.get('/tasks/dashboard-stats');
   },
 
+  // Project-wise task stats (for pie charts)
+  getProjectWiseStats() {
+    return this.get('/tasks/project-wise-stats');
+  },
+
   // Project members
   getProjectMembers(projectId) {
     return this.get(`/projects/${projectId}/members`);

@@ -57,3 +57,23 @@
 .animate-slideDown {
   animation: slideDown 0.3s ease-out;
 }
+
+.sidebar-text-transition {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Pie chart animation */
+@keyframes pieAppear {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-pieAppear {
+  animation: pieAppear 0.5s ease-out;
+}

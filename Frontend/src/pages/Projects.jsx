@@ -87,13 +87,15 @@ function Projects() {
             {isAdmin ? 'Manage your team projects and collaborations' : 'View your assigned projects'}
           </p>
         </div>
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center space-x-2"
-        >
-          <Plus className="w-5 h-5" />
-          <span>New Project</span>
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>New Project</span>
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -147,7 +149,7 @@ function Projects() {
               ? 'Try adjusting your search or filter criteria.' 
               : 'Create your first project to get started!'}
           </p>
-          {!searchTerm && filter === 'all' && (
+          {!searchTerm && filter === 'all' && isAdmin && (
             <Button onClick={() => setShowCreateModal(true)}>
               Create Project
             </Button>
@@ -156,7 +158,7 @@ function Projects() {
       )}
 
       {/* Create Project Modal */}
-      {showCreateModal && (
+      {isAdmin && showCreateModal && (
         <CreateProjectModal
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateProject}

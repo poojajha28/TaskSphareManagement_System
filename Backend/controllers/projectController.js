@@ -23,6 +23,11 @@ class ProjectController {
 
   async createProject(req, res) {
     try {
+      // Only admin can create projects
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Only admin can create projects' });
+      }
+
       // Validate input
       const errors = validateProject(req.body);
       if (errors.length > 0) {

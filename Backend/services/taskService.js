@@ -204,6 +204,43 @@ class TaskService {
     
     return { message: 'Task status updated' };
   }
+
+  async getProjectWiseStats(userId, role) {
+    const isAdmin = role === 'admin';
+    let query;
+
+    if (isAdmin) {
+      [query] = await pool.execute(
+        `SELECT p.id as project_id, p.name as project_name,
+                COUNT(t.id) as total_tasks,
+                SUM(CASE WHEN t.status = 'todo' THEN 1 ELSE 0 END) as todo_count,
+                SUM(CASE WHEN t.status = 'in-progress' THEN 1 ELSE 0 END) as in_progress_count,
+                SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) as done_count,
+                SUM(CASE WHEN t.status <> 'done' AND t.due_date IS NOT NULL AND t.due_date < NOW() THEN 1 ELSE 0 END) as overdue_count
+         FROM projects p
+         LEFT JOIN tasks t ON t.project_id = p.id
+         GROUP BY p.id, p.name
+         ORDER BY total_tasks DESC`
+      );
+    } else {
+      [query] = await pool.execute(
+        `SELECT p.id as project_id, p.name as project_name,
+                COUNT(t.id) as total_tasks,
+                SUM(CASE WHEN t.status = 'todo' THEN 1 ELSE 0 END) as todo_count,
+                SUM(CASE WHEN t.status = 'in-progress' THEN 1 ELSE 0 END) as in_progress_count,
+                SUM(CASE WHEN t.status = 'done' THEN 1 ELSE 0 END) as done_count,
+                SUM(CASE WHEN t.status <> 'done' AND t.due_date IS NOT NULL AND t.due_date < NOW() THEN 1 ELSE 0 END) as overdue_count
+         FROM projects p
+         INNER JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+         LEFT JOIN tasks t ON t.project_id = p.id AND t.assigned_to = ?
+         GROUP BY p.id, p.name
+         ORDER BY total_tasks DESC`,
+        [userId, userId]
+      );
+    }
+
+    return query || [];
+  }
 }
 
 module.exports = new TaskService();

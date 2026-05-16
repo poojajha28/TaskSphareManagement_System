@@ -94,6 +94,14 @@ class TaskController {
       res.status(500).json({ error: error.message });
     }
   }
+  async getProjectWiseStats(req, res) {
+    try {
+      const stats = await taskService.getProjectWiseStats(req.user.id, req.user.role);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = new TaskController();
