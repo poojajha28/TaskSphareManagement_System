@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Clock, User, Calendar, CheckCircle } from 'lucide-react';
+import { Clock, User, Calendar, CheckCircle, FolderKanban } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { api } from '../config/api';
@@ -64,16 +64,23 @@ function TaskCard({ task, onTaskUpdate }) {
   return (
     <div className={`bg-white/[0.03] rounded-xl border-l-4 p-4 hover:bg-white/[0.06] transition-all duration-300 border border-white/[0.06] ${isOverdue ? 'border-l-red-500' : 'border-l-blue-500'
       }`}>
-      <div className="flex justify-between items-start mb-3">
-        <h3 className="font-semibold text-white line-clamp-2">{task.title}</h3>
-        <div className="flex items-center space-x-2">
-          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${priorityColors[task.priority]}`}>
-            {task.priority}
-          </span>
-          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${statusColors[task.status] || 'bg-gray-500/20 text-gray-400'}`}>
-            {task.status === 'in-progress' ? 'In Progress' : task.status === 'todo' ? 'To Do' : 'Done'}
+      {task.project_name && (
+        <div className="flex items-center space-x-1.5 mb-2">
+          <FolderKanban className="w-3.5 h-3.5 text-purple-400" />
+          <span className="text-xs font-medium text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded-md border border-purple-500/20">
+            {task.project_name}
           </span>
         </div>
+      )}
+
+      <h3 className="font-semibold text-white line-clamp-2 mb-2">{task.title}</h3>
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <span className={`px-2 py-1 rounded-lg text-xs font-medium ${priorityColors[task.priority]}`}>
+          {task.priority}
+        </span>
+        <span className={`px-2 py-1 rounded-lg text-xs font-medium ${statusColors[task.status] || 'bg-gray-500/20 text-gray-400'}`}>
+          {task.status === 'in-progress' ? 'In Progress' : task.status === 'todo' ? 'To Do' : 'Done'}
+        </span>
       </div>
 
       <p className="text-gray-400 text-sm mb-4 line-clamp-3">{task.description}</p>
@@ -106,7 +113,7 @@ function TaskCard({ task, onTaskUpdate }) {
         )}
       </div>
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-2">
         {canUpdate ? (
           <select
             value={task.status}
