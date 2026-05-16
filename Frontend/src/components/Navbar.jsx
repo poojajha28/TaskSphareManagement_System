@@ -25,6 +25,24 @@ function Navbar() {
     return () => document.removeEventListener('mousedown', handleDocClick);
   }, [showNotif]);
 
+  // Fetch overdue tasks on mount so badge count always shows
+  useEffect(() => {
+    const fetchOverdueCount = async () => {
+      try {
+        const res = await api.getOverdueTasks();
+        const tasks = Array.isArray(res) ? res : (res && res.data) || [];
+        const mapped = (tasks || []).map((t) => ({
+          ...t,
+          daysOverdue: Math.max(1, Math.floor((Date.now() - Date.parse(t.due_date)) / (1000 * 60 * 60 * 24)))
+        }));
+        setOverdueTasks(mapped);
+      } catch (err) {
+        setOverdueTasks([]);
+      }
+    };
+    fetchOverdueCount();
+  }, []);
+
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
     { path: '/projects', label: 'Projects', icon: '📁' },
